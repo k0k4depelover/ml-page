@@ -1,0 +1,28 @@
+{
+  "grupos": [
+    { "nombre": "Núcleo de entrenamiento", "temas": [
+      { "id": "backprop-fondo", "file": "01-backprop.html", "titulo": "Backpropagation", "tagline": "Cómo un MLP reparte la culpa del error entre todos sus pesos con la regla de la cadena.", "resumen": ["mlp"] },
+      { "id": "optim-fondo", "file": "02-optimizadores.html", "titulo": "SGD, Momentum y Adam", "tagline": "Qué estado guarda cada optimizador y cómo convierte un gradiente ruidoso en un paso.", "resumen": ["gd"] },
+      { "id": "softmax-ce-fondo", "file": "03-softmax-ce.html", "titulo": "Softmax + cross-entropy", "tagline": "De logits a probabilidades a pérdida, y por qué el gradiente queda en p − y.", "resumen": ["softmax", "loss"] },
+      { "id": "regul-fondo", "file": "04-regularizacion.html", "titulo": "Regularización L1 y L2", "tagline": "Qué le hace la penalización al gradiente y por qué L1 produce ceros exactos.", "resumen": ["regul"] }
+    ]},
+    { "nombre": "Modelos clásicos", "temas": [
+      { "id": "tree-fondo", "file": "05-arbol.html", "titulo": "Árbol de decisión: búsqueda de splits", "tagline": "Ordenar, barrer umbrales, medir impureza, partir y repetir.", "resumen": ["tree"] },
+      { "id": "forest-fondo", "file": "06-random-forest.html", "titulo": "Random Forest", "tagline": "Bootstrap más subespacio de features: muchos árboles distintos que promedian su error.", "resumen": ["forest"] },
+      { "id": "boost-fondo", "file": "07-gradient-boosting.html", "titulo": "Gradient Boosting y XGBoost", "tagline": "Cada árbol nuevo ajusta el gradiente de la pérdida de los anteriores.", "resumen": ["boost"] },
+      { "id": "svm-fondo", "file": "08-svm.html", "titulo": "SVM y kernel trick", "tagline": "Maximizar el margen, pasar al dual y medir similitud sin calcular el espacio alto.", "resumen": ["svm"] }
+    ]},
+    { "nombre": "No supervisado", "temas": [
+      { "id": "pca-fondo", "file": "09-pca.html", "titulo": "PCA vía SVD", "tagline": "Centrar, descomponer, quedarse con las direcciones de más varianza.", "resumen": ["pca"] },
+      { "id": "kmeans-fondo", "file": "10-kmeans.html", "titulo": "K-Means y k-means++", "tagline": "Asignar, recalcular centros, repetir; y cómo empezar bien.", "resumen": ["kmeans"] },
+      { "id": "gmm-fondo", "file": "11-gmm-em.html", "titulo": "GMM y algoritmo EM", "tagline": "Responsabilidades suaves en el E-step, parámetros ponderados en el M-step.", "resumen": ["gmm"] },
+      { "id": "dbscan-fondo", "file": "12-dbscan.html", "titulo": "DBSCAN", "tagline": "Densidad local, puntos núcleo y expansión de clusters por alcanzabilidad.", "resumen": ["dbscan"] }
+    ]},
+    { "nombre": "Evaluación y producción", "temas": [
+      { "id": "metrics-fondo", "file": "13-umbral-calibracion.html", "titulo": "Métricas, umbral y calibración", "tagline": "Un modelo da scores; el negocio necesita decisiones. El umbral y la calibración son el puente.", "resumen": ["metrics"] },
+      { "id": "cv-fondo", "file": "14-validacion-leakage.html", "titulo": "Validación cruzada y data leakage", "tagline": "Medir el error futuro sin hacer trampa con información del test.", "resumen": ["kfold"] },
+      { "id": "vector-fondo", "file": "15-knn-vectorial.html", "titulo": "De KNN a búsqueda vectorial", "tagline": "Vecinos exactos no escalan; índices aproximados sí. Así funcionan buscadores y recomendadores.", "resumen": ["knn"] },
+      { "id": "sistema-fondo", "file": "16-sistema-ml.html", "titulo": "Un sistema de ML de punta a punta", "tagline": "Datos, features, entrenamiento, registro, serving, monitoreo y re-entrenamiento en un solo mapa.", "resumen": [] }
+    ]}
+  ]
+}

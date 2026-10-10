@@ -1,0 +1,135 @@
+/* Página "A fondo": diagramas SVG temáticos, stepper y diagramas de sistema.
+   Todos los colores salen de los tokens de base.css, así el tema claro/oscuro funciona sin tocar los SVG. */
+
+/* ---------- hero ---------- */
+.deep-hero { padding-block: 2.5rem 2rem; border-bottom: 1px solid var(--rule); }
+@media (min-width: 860px) { .deep-hero { padding-block: 3.5rem 2.5rem; } }
+.deep-hero h1 {
+  font-family: var(--f-display); font-size: var(--step-4); font-weight: 800; line-height: 0.92;
+  letter-spacing: -0.035em; margin: 0 0 1.25rem; font-variation-settings: "opsz" 96;
+}
+.deep-hero h1 .thin { font-weight: 300; color: var(--ink-2); display: block; font-size: 0.42em; letter-spacing: -0.015em; line-height: 1.1; margin-top: 0.35em; }
+.deep-hero .lede { font-size: var(--step-1); line-height: 1.5; color: var(--ink-2); max-width: 60ch; margin: 0 0 1.5rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-family: var(--f-display); font-size: 0.88rem; color: var(--ink-2); margin: 0; padding: 0; list-style: none; }
+.legend li { display: flex; align-items: center; gap: 0.45rem; }
+.legend svg { width: 2.4rem; height: 1rem; flex: none; }
+.legend .sw { width: 1.4rem; height: 0.95rem; border-radius: 3px; flex: none; border: 1px solid var(--rule); background: var(--sheet); }
+.legend .sw.op { background: var(--ink); border-color: var(--ink); }
+.legend .sw.out { border: 1.5px solid var(--accent); }
+.legend .sw.hot { border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--sheet)); }
+
+/* ---------- sección ---------- */
+.deep .lead { font-size: var(--step-0); color: var(--ink-2); max-width: 70ch; margin: 0 0 1.5rem; }
+.deep h3 { margin-top: 2.25rem; }
+.deep h3:first-of-type { margin-top: 0; }
+.deep h4 { font-family: var(--f-display); font-size: 0.95rem; font-weight: 650; margin: 1.25rem 0 0.4rem; color: var(--ink-2); }
+.deep p { max-width: 70ch; }
+.back { display: inline-block; margin: 1rem 0 0.5rem; font-family: var(--f-display); font-size: 0.9rem; font-weight: 600; text-decoration: none; }
+.back:hover { text-decoration: underline; }
+.note { border-left: 3px solid var(--c4); background: var(--sheet); padding: 0.6rem 0.9rem; margin: 0 0 1.5rem; max-width: 72ch; font-size: 0.97rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.note b { font-family: var(--f-display); }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.25rem 1rem; margin: 0 0 1.5rem; font-size: 0.97rem; }
+.kv dt { font-family: var(--f-display); font-weight: 600; color: var(--ink); }
+.kv dd { margin: 0; color: var(--ink-2); }
+
+/* ---------- figura de diagrama ---------- */
+figure.dgm { margin: 0 0 2rem; background: var(--fig); border-radius: var(--radius); }
+figure.dgm .scroll { overflow-x: auto; scrollbar-width: thin; padding: 0.75rem; }
+figure.dgm svg { display: block; width: 100%; height: auto; min-width: 720px; }
+figure.dgm.narrow svg { min-width: 520px; }
+figure.dgm.fit svg { min-width: 0; }
+figure.dgm figcaption {
+  font-family: var(--f-display); font-size: var(--step--1); color: var(--ink-3);
+  padding: 0.55rem 0.9rem; border-top: 1px solid var(--rule); background: var(--sheet); border-radius: 0 0 var(--radius) var(--radius);
+}
+@media (max-width: 760px) { figure.dgm figcaption::after { content: " · Desliza →"; color: var(--ink-3); } figure.dgm.narrow figcaption::after { content: none; } }
+
+/* primitivas SVG: texto */
+.dgm text { font-family: var(--f-display); font-size: 13px; fill: var(--ink); }
+.dgm text.m, .dgm .m text { font-family: var(--f-math); font-size: 15px; }
+.dgm text.s { font-size: 11px; fill: var(--ink-3); }
+.dgm text.sm { font-family: var(--f-math); font-size: 12.5px; fill: var(--ink-2); }
+.dgm text.h { font-weight: 700; font-size: 13.5px; }
+.dgm text.cap { font-size: 11px; font-weight: 600; fill: var(--ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+.dgm text.c1 { fill: var(--c1); } .dgm text.c2 { fill: var(--c2); } .dgm text.c3 { fill: var(--c3); } .dgm text.c4 { fill: var(--c4); } .dgm text.ac { fill: var(--accent); }
+.dgm text.mid { text-anchor: middle; } .dgm text.end { text-anchor: end; }
+
+/* nodos: entrada / operación / salida / resaltado / nota */
+.dgm .in rect, .dgm rect.in { fill: var(--sheet); stroke: var(--rule); stroke-width: 1.2; }
+.dgm .op rect, .dgm rect.op { fill: var(--ink); stroke: none; }
+.dgm .op text { fill: var(--paper); }
+.dgm .op text.s, .dgm .op text.cap { fill: color-mix(in srgb, var(--paper) 72%, transparent); }
+.dgm .out rect, .dgm rect.out { fill: var(--sheet); stroke: var(--accent); stroke-width: 1.6; }
+.dgm .hot rect, .dgm rect.hot { fill: color-mix(in srgb, var(--accent) 14%, var(--sheet)); stroke: var(--accent); stroke-width: 2.2; }
+.dgm .st rect, .dgm rect.st { fill: color-mix(in srgb, var(--c3) 12%, var(--sheet)); stroke: var(--c3); stroke-width: 1.4; }
+.dgm .dec rect, .dgm rect.dec { fill: color-mix(in srgb, var(--c4) 14%, var(--sheet)); stroke: var(--c4); stroke-width: 1.4; }
+.dgm .bad rect, .dgm rect.bad { fill: color-mix(in srgb, var(--c2) 12%, var(--sheet)); stroke: var(--c2); stroke-width: 1.4; }
+.dgm rect.lane { fill: var(--sheet); stroke: var(--rule-2); stroke-width: 1; }
+.dgm rect.grp { fill: none; stroke: var(--rule); stroke-width: 1.2; stroke-dasharray: 5 4; }
+
+/* aristas: forward / backward / estado / decisión / neutra */
+.dgm .e { fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.dgm .e.fw { stroke: var(--c1); marker-end: url(#ah-c1); }
+.dgm .e.bw { stroke: var(--c2); stroke-dasharray: 6 4; marker-end: url(#ah-c2); }
+.dgm .e.st { stroke: var(--c3); marker-end: url(#ah-c3); }
+.dgm .e.dec { stroke: var(--c4); marker-end: url(#ah-c4); }
+.dgm .e.nt { stroke: var(--ink-3); marker-end: url(#ah-ink); }
+.dgm .e.no-head { marker-end: none; }
+.dgm .ln { fill: none; stroke: var(--rule); stroke-width: 1; }
+.dgm .ln.ink { stroke: var(--ink-2); }
+.dgm .ln.dash { stroke-dasharray: 4 4; }
+/* puntas de flecha: viven en el <svg class="defs"> oculto al inicio del body, fuera de .dgm */
+svg.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.ah.c1 { fill: var(--c1); } .ah.c2 { fill: var(--c2); } .ah.c3 { fill: var(--c3); } .ah.c4 { fill: var(--c4); } .ah.ink { fill: var(--ink-3); }
+
+/* marcas de datos dentro de diagramas */
+.dgm .pt { stroke: var(--sheet); stroke-width: 1.2; }
+.dgm .f1 { fill: var(--c1); } .dgm .f2 { fill: var(--c2); } .dgm .f3 { fill: var(--c3); } .dgm .f4 { fill: var(--c4); } .dgm .fi { fill: var(--ink-3); } .dgm .fa { fill: var(--accent); }
+.dgm .s1 { stroke: var(--c1); fill: none; stroke-width: 2; } .dgm .s2 { stroke: var(--c2); fill: none; stroke-width: 2; }
+.dgm .s3 { stroke: var(--c3); fill: none; stroke-width: 2; } .dgm .s4 { stroke: var(--c4); fill: none; stroke-width: 2; }
+.dgm .sa { stroke: var(--accent); fill: none; stroke-width: 2; } .dgm .si { stroke: var(--ink-2); fill: none; stroke-width: 1.5; }
+.dgm .soft1 { fill: color-mix(in srgb, var(--c1) 16%, transparent); } .dgm .soft2 { fill: color-mix(in srgb, var(--c2) 16%, transparent); }
+.dgm .soft3 { fill: color-mix(in srgb, var(--c3) 16%, transparent); } .dgm .soft4 { fill: color-mix(in srgb, var(--c4) 18%, transparent); }
+.dgm .cell { fill: var(--sheet); stroke: var(--rule); stroke-width: 1; }
+
+/* ---------- stepper: diagrama paso a paso ---------- */
+.stepper { margin: 0 0 2rem; background: var(--fig); border-radius: var(--radius); }
+.stepper .body { display: grid; grid-template-columns: 1fr; }
+.stepper .body > * { min-width: 0; }
+@media (min-width: 980px) { .stepper .body { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); } }
+.stepper .scroll { overflow-x: auto; scrollbar-width: thin; padding: 0.75rem; }
+.stepper svg { display: block; width: 100%; height: auto; min-width: 560px; }
+.stepper [data-step] { transition: opacity 0.25s; }
+.stepper.js [data-step].future { opacity: 0.1; }
+.stepper.js [data-step].past { opacity: 0.55; }
+.stepper.js [data-step].once.past { opacity: 0; } /* grupo transitorio: desaparece al pasar */
+@media (prefers-reduced-motion: reduce) { .stepper [data-step] { transition: none; } }
+.stepper ol.panel { list-style: none; margin: 0; padding: 1rem 1.1rem; border-top: 1px solid var(--rule); background: var(--sheet); display: grid; align-content: start; }
+@media (min-width: 980px) { .stepper ol.panel { border-top: 0; border-left: 1px solid var(--rule); } }
+.stepper ol.panel > li { min-width: 0; }
+.stepper.js ol.panel li { display: none; }
+.stepper.js ol.panel li.now { display: block; }
+.stepper ol.panel li + li { margin-top: 0.9rem; }
+.stepper.js ol.panel li + li { margin-top: 0; }
+.stepper ol.panel b.t { display: block; font-family: var(--f-display); font-size: 1rem; margin-bottom: 0.35rem; }
+.stepper ol.panel .eq { display: block; font-family: var(--f-math); font-size: 1.08rem; line-height: 1.55; margin: 0.4rem 0; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
+.stepper ol.panel p { margin: 0.35rem 0 0; font-size: 0.97rem; }
+.stepper .bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; padding: 0.6rem 0.8rem;
+  border-top: 1px solid var(--rule); background: var(--sheet); border-radius: 0 0 var(--radius) var(--radius);
+  font-family: var(--f-display); font-size: 0.88rem; color: var(--ink-2);
+}
+.stepper .bar .count { font-variant-numeric: tabular-nums; margin-left: auto; }
+.stepper .bar .count b { color: var(--ink); }
+.stepper:not(.js) .bar { display: none; }
+
+/* ---------- tablas pequeñas de ejemplo numérico ---------- */
+.mini-wrap { overflow-x: auto; margin: 0 0 1.5rem; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet); }
+.mini-wrap table { min-width: 0; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+.mini-wrap td:first-child { white-space: normal; }
+.mini-wrap td.n, .mini-wrap th.n { white-space: nowrap; text-align: right; font-family: var(--f-mono); font-size: 0.85rem; font-weight: 400; }
+.mini-wrap tr.hl td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+/* ---------- índice lateral de esta página ---------- */
+.index .grp-n { font-family: var(--f-mono); font-size: 0.72rem; color: var(--ink-3); flex: none; }
+.mini-wrap td a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }

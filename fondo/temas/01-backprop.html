@@ -1,0 +1,129 @@
+<p class="lead">Red = composición de funciones. Pérdida = número al final. Backprop recorre el grafo al revés y aplica regla de la cadena en cada nodo. Resultado: gradiente de cada peso con un costo ≈ 2× forward.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 400" role="img" aria-label="Grafo de cálculo de un MLP de dos capas: paso forward arriba, paso backward abajo, gradientes y actualización de parámetros.">
+<text class="cap" x="10" y="16">forward</text>
+<g class="in"><rect x="150" y="24" width="130" height="30" rx="4"/><text class="m mid" x="215" y="45">W₁ (d×h), b₁</text></g>
+<g class="in"><rect x="470" y="24" width="130" height="30" rx="4"/><text class="m mid" x="535" y="45">W₂ (h×K), b₂</text></g>
+<g class="in"><rect x="830" y="24" width="110" height="30" rx="4"/><text class="m mid" x="885" y="45">y (B×K)</text></g>
+<path class="e nt" d="M215 54V68"/><path class="e nt" d="M535 54V68"/><path class="e nt" d="M885 54V68"/>
+<g class="in"><rect x="10" y="70" width="100" height="50" rx="4"/><text class="m mid" x="60" y="100">X</text></g>
+<g class="op"><rect x="150" y="70" width="130" height="50" rx="5"/><text class="m mid" x="215" y="100">z₁ = XW₁ + b₁</text></g>
+<g class="op"><rect x="320" y="70" width="110" height="50" rx="5"/><text class="m mid" x="375" y="100">a₁ = ReLU(z₁)</text></g>
+<g class="op"><rect x="470" y="70" width="130" height="50" rx="5"/><text class="m mid" x="535" y="100">z₂ = a₁W₂ + b₂</text></g>
+<g class="op"><rect x="640" y="70" width="140" height="50" rx="5"/><text class="m mid" x="710" y="100">p = softmax(z₂)</text></g>
+<g class="out"><rect x="820" y="70" width="130" height="50" rx="5"/><text class="m mid" x="885" y="93">L = −(1/B) Σ</text><text class="m mid" x="885" y="112">y·log p</text></g>
+<path class="e fw" d="M110 95H146"/><path class="e fw" d="M280 95H316"/><path class="e fw" d="M430 95H466"/><path class="e fw" d="M600 95H636"/><path class="e fw" d="M780 95H816"/>
+<text class="s mid" x="128" y="88">B×d</text><text class="s mid" x="298" y="88">B×h</text><text class="s mid" x="448" y="88">B×h</text><text class="s mid" x="618" y="88">B×K</text><text class="s mid" x="798" y="88">B×K</text>
+
+<text class="cap" x="10" y="190">backward</text>
+<path class="e st" d="M375 120V150H770V296"/><text class="s c3" x="480" y="144">caché: a₁</text>
+<path class="e st" d="M215 120V225H296"/><text class="s c3" x="222" y="180">caché: z₁</text>
+<path class="e st" d="M60 120V325H296"/><text class="s c3" x="68" y="300">caché: X</text>
+<g class="op"><rect x="800" y="200" width="150" height="50" rx="5"/><text class="m mid" x="875" y="230">δ₂ = (p − y)/B</text></g>
+<g class="op"><rect x="560" y="200" width="180" height="50" rx="5"/><text class="m mid" x="650" y="230">δa₁ = δ₂ W₂ᵀ</text></g>
+<g class="op"><rect x="300" y="200" width="200" height="50" rx="5"/><text class="m mid" x="400" y="230">δ₁ = δa₁ ⊙ 1[z₁ &gt; 0]</text></g>
+<path class="e bw" d="M885 120V196"/><path class="e bw" d="M800 225H744"/><path class="e bw" d="M560 225H504"/>
+<text class="s mid c2" x="772" y="218">B×K</text><text class="s mid c2" x="532" y="218">B×h</text>
+<g class="out"><rect x="780" y="300" width="170" height="50" rx="5"/><text class="m mid" x="865" y="322">∂L/∂W₂ = a₁ᵀ δ₂</text><text class="s mid" x="865" y="340">h×K · ∂b₂ = Σ δ₂</text></g>
+<g class="out"><rect x="300" y="300" width="200" height="50" rx="5"/><text class="m mid" x="400" y="322">∂L/∂W₁ = Xᵀ δ₁</text><text class="s mid" x="400" y="340">d×h · ∂b₁ = Σ δ₁</text></g>
+<path class="e bw" d="M875 250V296"/><path class="e bw" d="M400 250V296"/>
+<g class="st"><rect x="560" y="300" width="180" height="50" rx="5"/><text class="m mid" x="650" y="322">θ ← θ − η ∂L/∂θ</text><text class="s mid" x="650" y="340">optimizador (SGD, Adam…)</text></g>
+<path class="e st" d="M500 325H556"/><path class="e st" d="M780 325H744"/>
+<text class="s" x="10" y="388">Cada gradiente tiene la misma forma que su parámetro. Cada δ tiene la misma forma que la activación de su capa.</text>
+</svg></div><figcaption>Arriba forward guarda activaciones (verde). Abajo backward las consume en orden inverso: el error δ viaja de la pérdida hacia la entrada.</figcaption></figure>
+
+<h3>Paso a paso: red 2 → 2 → 1, una muestra</h3>
+<p>Entrada <i>x</i> = (1, 2), etiqueta <i>y</i> = 1, ReLU oculta, sigmoide + BCE a la salida (caso binario de softmax + CE, mismo δ = <i>p</i> − <i>y</i>). Sesgos en 0, η = 0.5.</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 640 330" role="img" aria-label="Red pequeña con valores numéricos de forward y backward por paso.">
+<path class="ln ink" d="M60 100L260 100M60 100L260 240M60 240L260 100M60 240L260 240M260 100L460 170M260 240L460 170M486 170H560"/>
+<text class="sm" x="122" y="92">0.1</text><text class="sm" x="132" y="142">0.4</text><text class="sm" x="114" y="204">−0.2</text><text class="sm" x="122" y="232">0.3</text>
+<text class="sm" x="356" y="124">0.7</text><text class="sm" x="356" y="228">0.5</text>
+<g class="in"><circle cx="60" cy="100" r="26" class="cell"/><text class="m mid" x="60" y="105">x₁</text></g>
+<g class="in"><circle cx="60" cy="240" r="26" class="cell"/><text class="m mid" x="60" y="245">x₂</text></g>
+<text class="m end" x="28" y="105">1</text><text class="m end" x="28" y="245">2</text>
+<circle cx="260" cy="100" r="26" class="cell"/><text class="m mid" x="260" y="105">h₁</text>
+<circle cx="260" cy="240" r="26" class="cell"/><text class="m mid" x="260" y="245">h₂</text>
+<circle cx="460" cy="170" r="26" class="cell"/><text class="m mid" x="460" y="175">σ</text>
+<g class="out"><rect x="560" y="148" width="72" height="44" rx="5"/><text class="m mid" x="596" y="175">L</text></g>
+<text class="s mid" x="596" y="140">y = 1</text>
+<text class="s" x="10" y="20">pesos W₁ en aristas x→h, W₂ en aristas h→σ</text>
+
+<g data-step="1"><text class="sm mid c1" x="260" y="146">z = −0.3 → a = 0</text><text class="sm mid c1" x="260" y="286">z = 1.0 → a = 1.0</text></g>
+<g data-step="2"><text class="sm mid c1" x="460" y="216">z₂ = 0.5</text><text class="sm mid c1" x="460" y="233">p = σ(0.5) = 0.622</text><text class="sm mid c1" x="596" y="210">L = 0.474</text></g>
+<g data-step="3"><path class="e bw" d="M558 184H492"/><text class="sm mid c2" x="530" y="128">δ₂ = p − y = −0.378</text></g>
+<g data-step="4"><path class="e bw" d="M440 154L286 108"/><path class="e bw" d="M440 186L286 232"/><text class="sm mid c2" x="260" y="60">δa = −0.378·0.7 = −0.264</text><text class="sm mid c2" x="260" y="314">δa = −0.378·0.5 = −0.189</text><text class="sm c2" x="380" y="158">∂W₂ = (0, −0.378)</text></g>
+<g data-step="5"><path class="si" d="M242 82L278 118M278 82L242 118" style="stroke:var(--c2);stroke-width:2.5"/><text class="sm c2" x="294" y="78">ReLU′(−0.3) = 0 → δ = 0</text><text class="sm c2" x="294" y="266">δ = −0.189 · 1</text></g>
+<g data-step="6"><text class="sm c2" x="184" y="86">0</text><text class="sm c2" x="196" y="160">0</text><text class="sm c2" x="200" y="190">−0.189</text><text class="sm c2" x="184" y="258">−0.378</text></g>
+<g data-step="7"><text class="sm c3" x="560" y="250">nuevo L = 0.310</text><text class="sm c3" x="560" y="268">(antes 0.474)</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Forward capa oculta</b><span class="eq">z₁ = x W₁ = (1·0.1 + 2·(−0.2), 1·0.4 + 2·0.3) = (−0.3, 1.0)</span><span class="eq">a₁ = ReLU(z₁) = (0, 1.0)</span><p>h₁ queda apagada. Guardar z₁ y a₁: backward los necesita.</p></li>
+<li><b class="t">2 · Forward salida y pérdida</b><span class="eq">z₂ = 0·0.7 + 1.0·0.5 = 0.5</span><span class="eq">p = σ(0.5) = 0.6225,  L = −ln 0.6225 = 0.4741</span></li>
+<li><b class="t">3 · Error en la salida</b><span class="eq">δ₂ = ∂L/∂z₂ = p − y = −0.3775</span><p>Sigmoide + BCE se simplifican: σ′ se cancela con la derivada del log. Negativo = subir z₂ baja la pérdida.</p></li>
+<li><b class="t">4 · Gradiente de W₂ y error hacia atrás</b><span class="eq">∂L/∂W₂ = a₁ · δ₂ = (0, −0.3775)</span><span class="eq">δa₁ = δ₂ · W₂ = (−0.2643, −0.1888)</span><p>Peso de neurona apagada recibe gradiente 0: su activación fue 0.</p></li>
+<li><b class="t">5 · Atravesar la ReLU</b><span class="eq">δ₁ = δa₁ ⊙ 1[z₁ &gt; 0] = (−0.2643·0, −0.1888·1) = (0, −0.1888)</span><p>ReLU = compuerta. Cerrada en forward, cerrada en backward.</p></li>
+<li><b class="t">6 · Gradiente de W₁</b><span class="eq">∂L/∂W₁ = xᵀ δ₁ = [[1·0, 1·(−0.1888)], [2·0, 2·(−0.1888)]]</span><span class="eq">= [[0, −0.1888], [0, −0.3775]]</span><p>Producto exterior entrada × error. Entrada grande → gradiente grande: por eso escalar features.</p></li>
+<li><b class="t">7 · Actualizar y comprobar</b><span class="eq">W₂ ← (0.7, 0.5) − 0.5·(0, −0.3775) = (0.7, 0.6888)</span><span class="eq">W₁[:,2] ← (0.4, 0.3) − 0.5·(−0.1888, −0.3775) = (0.4944, 0.4888)</span><p>Nuevo forward: z₂ = 1.014, p = 0.734, L = 0.310. Pérdida baja.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Regla de la cadena</dt><dd>∂L/∂W<sup>l</sup> = ∂L/∂z<sup>l</sup> · ∂z<sup>l</sup>/∂W<sup>l</sup> = (a<sup>l−1</sup>)<sup>⊤</sup> δ<sup>l</sup></dd></div>
+<div class="row"><dt>Error de salida</dt><dd>δ<sup>L</sup> = ∂L/∂z<sup>L</sup> = (p − y)/B   (softmax + CE, sigmoide + BCE)</dd></div>
+<div class="row"><dt>Recursión hacia atrás</dt><dd>δ<sup>l</sup> = (δ<sup>l+1</sup> (W<sup>l+1</sup>)<sup>⊤</sup>) ⊙ f′(z<sup>l</sup>)</dd></div>
+<div class="row"><dt>Gradiente de sesgo</dt><dd>∂L/∂b<sup>l</sup> = Σ<sub>filas del batch</sub> δ<sup>l</sup></dd></div>
+<div class="row"><dt>Derivadas de activación</dt><dd>ReLU′ = 1[z &gt; 0],  σ′ = σ(1 − σ) ≤ 0.25,  tanh′ = 1 − tanh² ≤ 1</dd></div>
+<div class="row"><dt>Costo</dt><dd>backward ≈ 2 × FLOPs forward;  memoria ∝ B × Σ<sub>l</sub> h<sub>l</sub> (activaciones guardadas)</dd></div>
+</dl>
+
+<h3>Por qué la profundidad duele: gradiente que se desvanece</h3>
+<p>δ en capa 1 = producto de una derivada de activación por capa. Sigmoide aporta ≤ 0.25 por capa. ReLU activa aporta 1.</p>
+<figure class="dgm narrow"><div class="scroll"><svg viewBox="0 0 640 250" role="img" aria-label="Magnitud relativa del gradiente por capa, sigmoide versus ReLU, escala logarítmica.">
+<path class="ln" d="M60 30H620M60 90H620M60 150H620M60 210H620"/>
+<text class="s end" x="54" y="34">1</text><text class="s end" x="54" y="94">10⁻¹</text><text class="s end" x="54" y="154">10⁻²</text><text class="s end" x="54" y="214">10⁻³</text>
+<g class="f1"><rect x="80" y="30" width="28" height="180"/><rect x="170" y="30" width="28" height="180"/><rect x="260" y="30" width="28" height="180"/><rect x="350" y="30" width="28" height="180"/><rect x="440" y="30" width="28" height="180"/><rect x="530" y="30" width="28" height="180"/></g>
+<g class="f2"><rect x="112" y="30" width="28" height="180"/><rect x="202" y="66" width="28" height="144"/><rect x="292" y="102" width="28" height="108"/><rect x="382" y="138" width="28" height="72"/><rect x="472" y="174" width="28" height="36"/><rect x="562" y="210" width="28" height="0.5"/></g>
+<text class="s mid" x="110" y="228">capa 6</text><text class="s mid" x="200" y="228">5</text><text class="s mid" x="290" y="228">4</text><text class="s mid" x="380" y="228">3</text><text class="s mid" x="470" y="228">2</text><text class="s mid" x="560" y="228">1</text>
+<text class="s c1" x="430" y="20">■ ReLU activa: ×1</text><text class="s c2" x="530" y="20">■ sigmoide: ×0.25</text>
+<text class="s c2" x="566" y="204">0.001</text>
+</svg></div><figcaption>Seis capas sigmoide: capa 1 recibe 0.25⁵ ≈ 0.001 del gradiente de la capa 6. Apenas aprende. ReLU, inicialización He y residuales lo evitan.</figcaption></figure>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 340" role="img" aria-label="Backpropagation dentro del bucle de entrenamiento offline; serving online sólo ejecuta forward.">
+<rect class="lane" x="4" y="6" width="952" height="206" rx="6"/><text class="cap" x="16" y="26">offline · entrenamiento (GPU)</text>
+<g class="in"><rect x="20" y="44" width="140" height="56" rx="5"/><text class="mid" x="90" y="68">DataLoader</text><text class="s mid" x="90" y="86">shuffle · batch B</text></g>
+<g class="op"><rect x="200" y="44" width="130" height="56" rx="5"/><text class="mid" x="265" y="68">forward</text><text class="s mid" x="265" y="86">guarda activaciones</text></g>
+<g class="op"><rect x="370" y="44" width="120" height="56" rx="5"/><text class="mid" x="430" y="68">pérdida</text><text class="s mid" x="430" y="86">CE / MSE</text></g>
+<g class="hot"><rect x="530" y="44" width="170" height="56" rx="5"/><text class="h mid" x="615" y="68">backward (autograd)</text><text class="s mid" x="615" y="86">∂L/∂θ para todo θ</text></g>
+<g class="op"><rect x="740" y="44" width="200" height="56" rx="5"/><text class="mid" x="840" y="68">clip ‖g‖ + optimizer.step</text><text class="s mid" x="840" y="86">luego zero_grad</text></g>
+<path class="e fw" d="M160 72H196"/><path class="e fw" d="M330 72H366"/><path class="e fw" d="M490 72H526"/><path class="e bw" d="M700 72H736"/>
+<path class="e st" d="M840 100V118H265V104"/><text class="s c3" x="480" y="114">siguiente batch (iteración)</text>
+<g class="st"><rect x="20" y="140" width="190" height="56" rx="5"/><text class="mid" x="115" y="164">checkpoint</text><text class="s mid" x="115" y="182">θ + estado optimizador</text></g>
+<g class="dec"><rect x="250" y="140" width="210" height="56" rx="5"/><text class="mid" x="355" y="164">validación por época</text><text class="s mid" x="355" y="182">early stopping si no mejora</text></g>
+<g class="st"><rect x="500" y="140" width="190" height="56" rx="5"/><text class="mid" x="595" y="164">registro de modelo</text><text class="s mid" x="595" y="182">versión + métricas</text></g>
+<g class="op"><rect x="730" y="140" width="210" height="56" rx="5"/><text class="mid" x="835" y="164">export sin grafo de grad</text><text class="s mid" x="835" y="182">ONNX / TorchScript / int8</text></g>
+<path class="e st" d="M210 168H246"/><path class="e dec" d="M460 168H496"/><path class="e st" d="M690 168H726"/>
+<rect class="lane" x="4" y="226" width="952" height="108" rx="6"/><text class="cap" x="16" y="246">online · serving (CPU/GPU)</text>
+<g class="in"><rect x="20" y="262" width="140" height="56" rx="5"/><text class="mid" x="90" y="286">request</text><text class="s mid" x="90" y="304">features</text></g>
+<g class="op"><rect x="200" y="262" width="260" height="56" rx="5"/><text class="mid" x="330" y="286">sólo forward · no_grad</text><text class="s mid" x="330" y="304">sin activaciones guardadas, batching dinámico</text></g>
+<g class="out"><rect x="500" y="262" width="190" height="56" rx="5"/><text class="mid" x="595" y="286">predicción</text><text class="s mid" x="595" y="304">p, clase, embedding</text></g>
+<path class="e fw" d="M160 290H196"/><path class="e fw" d="M460 290H496"/>
+<path class="e st" d="M835 196V290H694"/><text class="s c3" x="742" y="282">despliegue</text>
+</svg></div><figcaption>Backward vive sólo en entrenamiento. Serving ejecuta forward sin grafo: menos memoria, menos latencia.</figcaption></figure>
+<dl class="kv">
+<dt>Dónde corre</dt><dd>Autograd (PyTorch, JAX, TensorFlow) construye el grafo en forward y lo recorre en <code>loss.backward()</code>. Nadie escribe δ a mano en producción.</dd>
+<dt>Memoria</dt><dd>Activaciones guardadas dominan: B × capas × ancho. Si no cabe: gradient checkpointing (recalcular en backward), mixed precision (bf16), reducir B y acumular gradientes.</dd>
+<dt>Estabilidad</dt><dd>Clip de norma (‖g‖ ≤ 1) evita explosión. Monitorear norma del gradiente por capa: ~0 = capa muerta, ∞/NaN = explosión o lr alto.</dd>
+<dt>Distribuido</dt><dd>Data parallel: cada GPU hace forward/backward de su shard; all-reduce promedia gradientes antes de <code>step</code>.</dd>
+<dt>Re-entrenar</dt><dd>Fine-tuning desde checkpoint cuando llega data nueva o cae métrica online; mismo bucle, lr más bajo.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>Olvidar <code>zero_grad()</code>: gradientes se acumulan entre batches.</li>
+<li>Muchas ReLU con z &lt; 0 siempre = neuronas muertas, gradiente 0 para siempre. Lr alto lo provoca. Leaky ReLU / GELU mitigan.</li>
+<li>Pérdida promediada vs sumada cambia escala del gradiente por B; lr se ajusta distinto.</li>
+<li>Verificar gradiente propio con diferencias finitas: (L(θ+ε) − L(θ−ε)) / 2ε, ε ≈ 10⁻⁵.</li>
+</ul>

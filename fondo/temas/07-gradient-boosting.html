@@ -1,0 +1,111 @@
+<p class="lead">Boosting = descenso de gradiente en espacio de funciones. Cada árbol nuevo apunta a la dirección que más baja la pérdida del ensamble actual. Árboles chicos, secuenciales, sumados con paso η.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 380" role="img" aria-label="Bucle de boosting: predicción actual, gradientes y hessianos por muestra, árbol ajustado al gradiente negativo, valores de hoja, actualización con learning rate, validación y parada temprana.">
+<g class="in"><rect x="20" y="30" width="150" height="60" rx="5"/><text class="mid" x="95" y="54">train</text><text class="m mid" x="95" y="74">X (n×d), y</text></g>
+<g class="st"><rect x="20" y="150" width="150" height="70" rx="5"/><text class="m mid" x="95" y="176">F₀ = argmin Σ ℓ(y, c)</text><text class="s mid" x="95" y="196">media · log-odds base</text></g>
+<path class="e nt" d="M95 90V146"/>
+<g class="op"><rect x="220" y="30" width="200" height="70" rx="5"/><text class="m mid" x="320" y="56">gᵢ = ∂ℓ(yᵢ, F)/∂F</text><text class="m mid" x="320" y="80">hᵢ = ∂²ℓ/∂F²</text></g>
+<g class="op"><rect x="470" y="30" width="220" height="70" rx="5"/><text class="mid" x="580" y="56">árbol fₘ ajustado a −g</text><text class="s mid" x="580" y="76">profundidad 3–8 · split por gain</text></g>
+<g class="op"><rect x="740" y="30" width="200" height="70" rx="5"/><text class="m mid" x="840" y="56">wⱼ = −Gⱼ / (Hⱼ + λ)</text><text class="s mid" x="840" y="78">valor óptimo de cada hoja</text></g>
+<g class="op"><rect x="740" y="160" width="200" height="60" rx="5"/><text class="m mid" x="840" y="186">Fₘ = Fₘ₋₁ + η fₘ</text><text class="s mid" x="840" y="206">η = 0.01–0.3 (shrinkage)</text></g>
+<g class="dec"><rect x="470" y="160" width="220" height="60" rx="5"/><text class="mid" x="580" y="184">pérdida en validación</text><text class="s mid" x="580" y="204">¿no mejora en k rondas? → parar</text></g>
+<g class="out"><rect x="470" y="290" width="220" height="64" rx="5"/><text class="m mid" x="580" y="316">F(x) = F₀ + η Σₘ fₘ(x)</text><text class="s mid" x="580" y="336">M árboles · predicción = suma</text></g>
+<path class="e st" d="M170 185H200V65H216"/><path class="e bw" d="M420 65H466"/><path class="e fw" d="M690 65H736"/><path class="e fw" d="M840 100V156"/><path class="e fw" d="M740 190H694"/>
+<path class="e dec" d="M580 220V286"/><text class="s c4" x="588" y="258">sí</text>
+<path class="e st" d="M470 190H320V104"/><text class="s c3" x="330" y="182">no: siguiente ronda m + 1</text>
+<text class="s c2" x="424" y="56">−g</text>
+<text class="s" x="20" y="300">Clasificación binaria (log-loss):</text><text class="sm" x="20" y="322">g = p − y,   h = p(1 − p)</text>
+<text class="s" x="20" y="346">Regresión (MSE ½(y − F)²):</text><text class="sm" x="20" y="368">g = F − y = −residuo,   h = 1</text>
+</svg></div><figcaption>Rojo punteado: el árbol aprende el gradiente negativo. Verde: estado que avanza ronda a ronda. Ámbar: parada temprana con validación.</figcaption></figure>
+
+<h3>Paso a paso: tres rondas en regresión</h3>
+<p>Cuatro puntos x = (1, 2, 3, 4), y = (3, 5, 8, 10). Pérdida MSE, árboles de un corte (stumps), η = 0.5.</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 580 330" role="img" aria-label="Datos y predicción escalonada del ensamble tras cada ronda de boosting.">
+<path class="ln ink" d="M40 20V300H560"/>
+<path class="ln" d="M40 225H560M40 175H560M40 100H560M40 50H560"/>
+<text class="s end" x="34" y="229">3</text><text class="s end" x="34" y="179">5</text><text class="s end" x="34" y="104">8</text><text class="s end" x="34" y="54">10</text>
+<text class="s mid" x="80" y="318">x=1</text><text class="s mid" x="220" y="318">2</text><text class="s mid" x="360" y="318">3</text><text class="s mid" x="500" y="318">4</text>
+<circle class="fa pt" cx="80" cy="225" r="7"/><circle class="fa pt" cx="220" cy="175" r="7"/><circle class="fa pt" cx="360" cy="100" r="7"/><circle class="fa pt" cx="500" cy="50" r="7"/>
+<g data-step="1-2"><path class="si" d="M40 137.5H560" style="stroke-dasharray:6 4"/><text class="s" x="544" y="132" style="text-anchor:end">F₀ = 6.5</text>
+<path class="s2" d="M80 225V137.5M220 175V137.5M360 100V137.5M500 50V137.5" style="stroke-dasharray:4 3"/>
+<text class="s c2" x="88" y="186">−3.5</text><text class="s c2" x="228" y="160">−1.5</text><text class="s c2" x="368" y="124">+1.5</text><text class="s c2" x="508" y="98">+3.5</text></g>
+<g data-step="2"><path class="ln dash ink" d="M290 20V300"/><text class="s mid" x="290" y="16">x ≤ 2.5</text><text class="sm c2" x="150" y="290">hoja −2.5</text><text class="sm c2" x="420" y="290">hoja +2.5</text></g>
+<g data-step="3"><path class="s1" d="M40 168.75H290V106.25H560" style="stroke-width:2.5"/><text class="s c1" x="44" y="162">F₁</text></g>
+<g data-step="4"><path class="s3" d="M40 196.9H150V159.4H290V96.9H560" style="stroke-width:2.5"/><text class="s c3" x="44" y="212">F₂</text></g>
+<g data-step="5"><path class="s4" d="M40 204.7H150V167.2H290V104.7H430V73.4H560" style="stroke-width:3"/><text class="s c4" x="436" y="68">F₃</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Modelo base y residuos</b><span class="eq">F₀ = media(y) = 6.5,   MSE = 7.25</span><span class="eq">r = y − F₀ = (−3.5, −1.5, 1.5, 3.5) = −g</span><p>Con MSE, gradiente negativo = residuo. Árbol siguiente ajusta residuos.</p></li>
+<li><b class="t">2 · Stump sobre residuos</b><span class="eq">mejor corte x ≤ 2.5:  hojas = media de r = (−2.5, +2.5)</span><p>Error del stump: Σ(r − hoja)² = 4·1 = 4 (mínimo entre 3 cortes).</p></li>
+<li><b class="t">3 · Ronda 1</b><span class="eq">F₁ = 6.5 + 0.5·(−2.5, −2.5, 2.5, 2.5) = (5.25, 5.25, 7.75, 7.75)</span><span class="eq">MSE = 2.56</span><p>η = 0.5: sólo medio paso. Deja trabajo para árboles siguientes; generaliza mejor.</p></li>
+<li><b class="t">4 · Ronda 2</b><span class="eq">r = (−2.25, −0.25, 0.25, 2.25)  →  corte x ≤ 1.5: (−2.25 | 0.75)</span><span class="eq">F₂ = (4.125, 5.625, 8.125, 8.125),  MSE = 1.30</span><p>Nuevo árbol corrige donde el ensamble falla más (x = 1).</p></li>
+<li><b class="t">5 · Ronda 3</b><span class="eq">r = (−1.125, −0.625, −0.125, 1.875)  →  corte x ≤ 3.5</span><span class="eq">F₃ = (3.81, 5.31, 7.81, 9.06),  MSE = 0.42</span><p>MSE: 7.25 → 2.56 → 1.30 → 0.42. Sin parada temprana llega a 0: memoriza ruido.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Cómo XGBoost / LightGBM eligen el split</h3>
+<p>Aproximación de Taylor de 2º orden de la pérdida alrededor de F. Cada hoja suma gradientes G y hessianos H de sus filas. Mejor valor de hoja y ganancia salen cerrados.</p>
+<h4>Ejemplo: log-loss, 6 filas, p = 0.5 inicial, λ = 1</h4>
+<div class="mini-wrap"><table><thead><tr><th>lado</th><th>y</th><th class="n">G = Σ(p − y)</th><th class="n">H = Σ p(1−p)</th><th class="n">w = −G/(H+λ)</th></tr></thead><tbody>
+<tr><td>izq.</td><td class="n">0, 0, 1</td><td class="n">0.5</td><td class="n">0.75</td><td class="n">−0.286</td></tr>
+<tr><td>der.</td><td class="n">1, 1, 0</td><td class="n">−0.5</td><td class="n">0.75</td><td class="n">+0.286</td></tr>
+<tr class="hl"><td colspan="5">gain = ½ [0.5²/1.75 + 0.5²/1.75 − 0²/2.5] − γ = 0.143 − γ</td></tr>
+</tbody></table></div>
+<figure class="dgm fit" style="max-width:640px"><div class="scroll"><svg viewBox="0 0 460 300" role="img" aria-label="Histogramas de gradiente por bin y truco de resta de histogramas.">
+<text class="h" x="10" y="22">Histogram binning</text>
+<text class="s" x="10" y="42">feature → 256 bins por cuantiles (una vez)</text>
+<g class="f2"><rect x="20" y="110" width="22" height="30"/><rect x="46" y="90" width="22" height="50"/><rect x="72" y="70" width="22" height="70"/><rect x="98" y="100" width="22" height="40"/><rect x="124" y="120" width="22" height="20"/><rect x="150" y="105" width="22" height="35"/></g>
+<text class="s" x="20" y="158">G por bin en nodo padre</text>
+<path class="ln dash ink" d="M96 60V146"/><text class="s mid" x="96" y="56">corte</text>
+<text class="sm" x="200" y="80">escanear 256 bins,</text><text class="sm" x="200" y="98">no n valores ordenados</text>
+<text class="sm" x="200" y="124">O(n) llenar + O(bins) buscar</text>
+<g class="op"><rect x="20" y="190" width="120" height="50" rx="5"/><text class="mid" x="80" y="220">hist(padre)</text></g>
+<g class="op"><rect x="170" y="190" width="120" height="50" rx="5"/><text class="mid" x="230" y="220">hist(hijo chico)</text></g>
+<g class="out"><rect x="320" y="190" width="130" height="50" rx="5"/><text class="mid" x="385" y="212">hist(hermano)</text><text class="s mid" x="385" y="230">= padre − chico</text></g>
+<text class="m mid" x="155" y="221">−</text><text class="m mid" x="305" y="221">=</text>
+<text class="s" x="20" y="270">Sólo se recorren filas del hijo más chico. Mitad de trabajo por nivel.</text>
+</svg></div><figcaption>Así LightGBM entrena millones de filas en minutos.</figcaption></figure>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Objetivo ronda m</dt><dd>Σ<sub>i</sub> ℓ(y<sub>i</sub>, F<sub>m−1</sub> + f(x<sub>i</sub>)) + Ω(f),   Ω = γT + ½λ Σ<sub>j</sub> w<sub>j</sub>²</dd></div>
+<div class="row"><dt>Taylor 2º orden</dt><dd>≈ Σ<sub>i</sub> [g<sub>i</sub> f(x<sub>i</sub>) + ½ h<sub>i</sub> f(x<sub>i</sub>)²] + Ω(f) + const</dd></div>
+<div class="row"><dt>Hoja óptima</dt><dd>w<sub>j</sub>* = −G<sub>j</sub> / (H<sub>j</sub> + λ),   G<sub>j</sub> = Σ<sub>i∈j</sub> g<sub>i</sub>,  H<sub>j</sub> = Σ<sub>i∈j</sub> h<sub>i</sub></dd></div>
+<div class="row"><dt>Ganancia de split</dt><dd>½ [G<sub>L</sub>²/(H<sub>L</sub>+λ) + G<sub>R</sub>²/(H<sub>R</sub>+λ) − (G<sub>L</sub>+G<sub>R</sub>)²/(H<sub>L</sub>+H<sub>R</sub>+λ)] − γ</dd></div>
+<div class="row"><dt>Log-loss</dt><dd>F = log-odds,  p = σ(F),  g = p − y,  h = p(1 − p)</dd></div>
+<div class="row"><dt>Shrinkage</dt><dd>F<sub>m</sub> = F<sub>m−1</sub> + η f<sub>m</sub>;   η ↓ ⇒ más rondas M, mejor generalización</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 310" role="img" aria-label="Pipeline de boosting en producción: features, entrenamiento con validación temporal, modelo, servidor nativo, explicaciones SHAP y monitoreo.">
+<rect class="lane" x="4" y="6" width="952" height="140" rx="6"/><text class="cap" x="16" y="26">offline · semanal</text>
+<g class="in"><rect x="20" y="42" width="160" height="60" rx="5"/><text class="mid" x="100" y="66">warehouse</text><text class="s mid" x="100" y="84">features + etiqueta</text></g>
+<g class="op"><rect x="210" y="42" width="170" height="60" rx="5"/><text class="mid" x="295" y="66">split temporal</text><text class="s mid" x="295" y="84">train &lt; t &lt; valid</text></g>
+<g class="hot"><rect x="410" y="42" width="220" height="60" rx="5"/><text class="h mid" x="520" y="66">LightGBM / XGBoost</text><text class="s mid" x="520" y="84">early_stopping_rounds = 100</text></g>
+<g class="st"><rect x="660" y="42" width="280" height="60" rx="5"/><text class="mid" x="800" y="66">modelo: M árboles (p. ej. 800 × prof. 6)</text><text class="s mid" x="800" y="84">texto/JSON/binario · pocos MB</text></g>
+<path class="e fw" d="M180 72H206"/><path class="e fw" d="M380 72H406"/><path class="e st" d="M630 72H656"/>
+<text class="s" x="410" y="126">Tuning típico: num_leaves, η, min_child_samples, subsample, colsample (azar como en RF).</text>
+<rect class="lane" x="4" y="158" width="952" height="146" rx="6"/><text class="cap" x="16" y="178">online · fraude / riesgo / ranking</text>
+<g class="in"><rect x="20" y="196" width="140" height="60" rx="5"/><text class="mid" x="90" y="220">transacción</text><text class="s mid" x="90" y="238">evento</text></g>
+<g class="op"><rect x="180" y="196" width="160" height="60" rx="5"/><text class="mid" x="260" y="220">feature store</text><text class="s mid" x="260" y="238">agregados en ventana</text></g>
+<g class="hot"><rect x="360" y="196" width="170" height="60" rx="5"/><text class="h mid" x="445" y="220">predictor nativo C++</text><text class="s mid" x="445" y="238">M × prof ≈ 5k ops, &lt; 1 ms</text></g>
+<g class="dec"><rect x="550" y="196" width="140" height="60" rx="5"/><text class="mid" x="620" y="220">score ≥ τ ?</text><text class="s mid" x="620" y="238">bloquear / revisar</text></g>
+<g class="op"><rect x="710" y="196" width="230" height="60" rx="5"/><text class="mid" x="825" y="220">TreeSHAP</text><text class="s mid" x="825" y="238">aporte por feature, exacto, O(T·L·D²)</text></g>
+<path class="e fw" d="M160 226H176"/><path class="e fw" d="M340 226H356"/><path class="e fw" d="M530 226H546"/><path class="e dec" d="M690 226H706"/>
+<path class="e st" d="M800 102V150H445V192"/>
+<text class="s" x="20" y="290">Monitorear: PSI de features, tasa de alertas, precisión con etiquetas tardías (chargebacks llegan semanas después).</text>
+</svg></div><figcaption>Boosting domina datos tabulares en producción: precisión alta, modelo chico, inferencia sub-milisegundo, explicaciones exactas con TreeSHAP.</figcaption></figure>
+<dl class="kv">
+<dt>Validación</dt><dd>Siempre early stopping con conjunto de validación separado; M sale de ahí, no se fija a mano.</dd>
+<dt>Ranking</dt><dd>LambdaMART: mismo bucle, g y h salen de NDCG por pares. Base de buscadores y feeds.</dd>
+<dt>Re-entrenar</dt><dd>Desde cero con ventana deslizante, o continuar boosting desde modelo previo (init_model) agregando árboles con datos nuevos.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>η alto + muchos árboles = sobreajuste rápido. Bajar η y dejar que early stopping elija M.</li>
+<li>Early stopping evaluado sobre el test final = fuga: el test deja de ser imparcial.</li>
+<li>Features con fuga temporal (agregados que incluyen el futuro) dan AUC irreal; boosting las explota más que nadie.</li>
+<li>Árboles profundos (num_leaves alto) con pocos datos: memoriza. min_child_samples ≥ 20.</li>
+</ul>

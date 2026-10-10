@@ -1,0 +1,150 @@
+<p class="lead">Última capa da logits: números sin escala. Softmax los vuelve distribución. Cross-entropy mide sorpresa ante clase real. Juntas tienen gradiente trivial: <i>p</i> − <i>y</i>.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 370" role="img" aria-label="Grafo de softmax con resta del máximo, exponencial, suma, normalización y pérdida; ruta estable log-sum-exp; gradiente fusionado p menos y.">
+<text class="cap" x="20" y="22">forward ingenuo</text>
+<g class="in"><rect x="780" y="8" width="160" height="34" rx="4"/><text class="m mid" x="860" y="30">y one-hot (B×K)</text></g>
+<path class="e nt" d="M860 42V66"/>
+<g class="in"><rect x="20" y="70" width="100" height="50" rx="5"/><text class="m mid" x="70" y="92">z logits</text><text class="s mid" x="70" y="110">B×K</text></g>
+<g class="op"><rect x="150" y="70" width="140" height="50" rx="5"/><text class="m mid" x="220" y="92">s = z − max z</text><text class="s mid" x="220" y="110">no cambia p</text></g>
+<g class="op"><rect x="320" y="70" width="110" height="50" rx="5"/><text class="m mid" x="375" y="100">e = exp(s)</text></g>
+<g class="op"><rect x="460" y="70" width="120" height="50" rx="5"/><text class="m mid" x="520" y="92">S = Σₖ eₖ</text><text class="s mid" x="520" y="110">B×1</text></g>
+<g class="op"><rect x="610" y="70" width="120" height="50" rx="5"/><text class="m mid" x="670" y="100">p = e / S</text></g>
+<g class="out"><rect x="770" y="70" width="180" height="50" rx="5"/><text class="m mid" x="860" y="92">L = −(1/B) Σ log p_y</text><text class="s mid" x="860" y="110">escalar</text></g>
+<path class="e fw" d="M120 95H146"/><path class="e fw" d="M290 95H316"/><path class="e fw" d="M430 95H456"/><path class="e fw" d="M580 95H606"/><path class="e fw" d="M730 95H766"/>
+<path class="e fw" d="M375 70V54H650V66"/><text class="s c1" x="470" y="50">e (B×K)</text>
+<text class="s c2" x="740" y="140">riesgo: log(0) = −∞</text>
+
+<text class="cap" x="20" y="176">ruta estable · log_softmax</text>
+<g class="op"><rect x="460" y="185" width="270" height="56" rx="5"/><text class="m mid" x="595" y="210">log p_y = s_y − log S</text><text class="s mid" x="595" y="228">log-sum-exp: nunca evalúa log(0)</text></g>
+<path class="e st" d="M220 120V213H456"/><text class="s c3" x="228" y="206">s</text>
+<path class="e st" d="M520 120V181"/>
+<path class="e st" d="M730 213H880V124"/>
+
+<text class="cap" x="20" y="286">backward fusionado</text>
+<g class="op"><rect x="460" y="296" width="270" height="56" rx="5"/><text class="m mid" x="595" y="321">∂L/∂z = (p − y) / B</text><text class="s mid" x="595" y="339">sin Jacobiano K×K explícito</text></g>
+<path class="e bw" d="M920 120V324H734"/><path class="e bw" d="M460 324H70V124"/>
+<text class="s c2" x="140" y="316">B×K, filas suman 0</text>
+</svg></div><figcaption>Arriba ruta ingenua. Medio ruta que usan frameworks (log_softmax + NLL). Abajo gradiente directo de pérdida a logits.</figcaption></figure>
+
+<h3>Paso a paso: 3 clases, clase real = A</h3>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 560 360" role="img" aria-label="Valores de softmax y cross-entropy por clase en cada etapa.">
+<text class="h mid" x="260" y="26">A (real)</text><text class="h mid" x="370" y="26">B</text><text class="h mid" x="480" y="26">C</text>
+<path class="ln" d="M20 38H540"/>
+<text x="20" y="66">logits z</text><text class="m mid" x="260" y="66">2.0</text><text class="m mid" x="370" y="66">1.0</text><text class="m mid" x="480" y="66">0.1</text>
+<g data-step="1"><text x="20" y="104">s = z − 2.0</text><text class="m mid c1" x="260" y="104">0</text><text class="m mid c1" x="370" y="104">−1.0</text><text class="m mid c1" x="480" y="104">−1.9</text></g>
+<g data-step="2"><text x="20" y="142">e = exp(s)</text><text class="m mid c1" x="260" y="142">1.000</text><text class="m mid c1" x="370" y="142">0.368</text><text class="m mid c1" x="480" y="142">0.150</text></g>
+<g data-step="3"><text x="20" y="180">S = Σ e</text><text class="m mid c1" x="370" y="180">1.517</text><path class="ln" d="M220 172H330M410 172H520"/></g>
+<g data-step="4"><text x="20" y="218">p = e / S</text><text class="m mid c1" x="260" y="214">0.659</text><text class="m mid c1" x="370" y="214">0.242</text><text class="m mid c1" x="480" y="214">0.099</text>
+<rect class="f1" x="220" y="222" width="52.7" height="7"/><rect class="f1" x="330" y="222" width="19.4" height="7"/><rect class="f1" x="440" y="222" width="7.9" height="7"/></g>
+<g data-step="5"><text x="20" y="262">ℓ = −log p_A</text><text class="m mid ac" x="370" y="262">−ln 0.659 = 0.417</text></g>
+<g data-step="6"><text x="20" y="306">∂ℓ/∂z = p − y</text><text class="m mid c2" x="260" y="300">−0.341</text><text class="m mid c2" x="370" y="300">+0.242</text><text class="m mid c2" x="480" y="300">+0.099</text>
+<path class="ln" d="M260 306V320M370 306V320M480 306V320"/><rect class="f2" x="232.7" y="309" width="27.3" height="8"/><rect class="f2" x="370" y="309" width="19.4" height="8"/><rect class="f2" x="480" y="309" width="7.9" height="8"/></g>
+<g data-step="7"><text x="20" y="346">paso −η·grad</text><text class="m mid c3" x="260" y="346">z_A ↑</text><text class="m mid c3" x="370" y="346">z_B ↓</text><text class="m mid c3" x="480" y="346">z_C ↓</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Restar el máximo</b><span class="eq">s = (2.0, 1.0, 0.1) − 2.0 = (0, −1.0, −1.9)</span><p>exp(z − c)/Σexp(z − c) = exp(z)/Σexp(z). Mismo resultado, sin overflow: máximo exponente = 0.</p></li>
+<li><b class="t">2 · Exponenciar</b><span class="eq">e = (e⁰, e⁻¹, e⁻¹·⁹) = (1, 0.3679, 0.1496)</span><p>Todo positivo. Diferencias de 1 en logit = factor 2.72 en probabilidad.</p></li>
+<li><b class="t">3 · Sumar</b><span class="eq">S = 1 + 0.3679 + 0.1496 = 1.5174</span></li>
+<li><b class="t">4 · Normalizar</b><span class="eq">p = e / S = (0.659, 0.2424, 0.0986)</span><p>Suma 1. Clase A más probable, pero no segura.</p></li>
+<li><b class="t">5 · Pérdida</b><span class="eq">ℓ = −ln 0.659 = 0.4170</span><span class="eq">ruta estable: ℓ = log S − s_A = ln 1.5174 − 0 = 0.4170</span><p>Predicción perfecta: ℓ = 0. Confiado y equivocado (p_A = 0.01): ℓ = 4.6.</p></li>
+<li><b class="t">6 · Gradiente</b><span class="eq">p − y = (0.659 − 1, 0.2424, 0.0986) = (−0.341, 0.2424, 0.0986)</span><p>Suma 0. Clase real: empuje hacia arriba de tamaño 1 − p_A. Resto: empuje hacia abajo igual a su p.</p></li>
+<li><b class="t">7 · Efecto del paso</b><span class="eq">z ← z − η (p − y)</span><p>Sube logit de A, baja B y C en proporción a cuánto “robaban” probabilidad. Error chico = gradiente chico: se autoregula.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Por qué el gradiente queda en p − y</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 250" role="img" aria-label="Producto del gradiente de la pérdida respecto a p por el Jacobiano de softmax da p menos y.">
+<text class="h" x="20" y="24">∂ℓ/∂p</text><text class="h" x="250" y="24">Jacobiano softmax J = diag(p) − ppᵀ</text><text class="h" x="720" y="24">∂ℓ/∂z = Jᵀ ∂ℓ/∂p</text>
+<g class="in"><rect x="20" y="40" width="150" height="40" rx="4"/><text class="m mid" x="95" y="66">−1/p_A = −1.517</text></g>
+<g class="in"><rect x="20" y="88" width="150" height="40" rx="4"/><text class="m mid" x="95" y="114">0</text></g>
+<g class="in"><rect x="20" y="136" width="150" height="40" rx="4"/><text class="m mid" x="95" y="162">0</text></g>
+<text class="m mid" x="205" y="114">·</text>
+<g class="m">
+<rect class="soft1" x="250" y="40" width="120" height="40"/><text class="mid" x="310" y="66">0.225</text>
+<rect class="soft2" x="370" y="40" width="120" height="40"/><text class="mid" x="430" y="66">−0.160</text>
+<rect class="soft2" x="490" y="40" width="120" height="40"/><text class="mid" x="550" y="66">−0.065</text>
+<rect class="cell" x="250" y="88" width="120" height="40"/><text class="mid" x="310" y="114">−0.160</text>
+<rect class="cell" x="370" y="88" width="120" height="40"/><text class="mid" x="430" y="114">0.184</text>
+<rect class="cell" x="490" y="88" width="120" height="40"/><text class="mid" x="550" y="114">−0.024</text>
+<rect class="cell" x="250" y="136" width="120" height="40"/><text class="mid" x="310" y="162">−0.065</text>
+<rect class="cell" x="370" y="136" width="120" height="40"/><text class="mid" x="430" y="162">−0.024</text>
+<rect class="cell" x="490" y="136" width="120" height="40"/><text class="mid" x="550" y="162">0.089</text>
+</g>
+<text class="m mid" x="660" y="114">=</text>
+<g class="out"><rect x="720" y="40" width="220" height="40" rx="4"/><text class="m mid" x="830" y="66">−1.517·0.225 = −0.341</text></g>
+<g class="out"><rect x="720" y="88" width="220" height="40" rx="4"/><text class="m mid" x="830" y="114">−1.517·(−0.160) = 0.242</text></g>
+<g class="out"><rect x="720" y="136" width="220" height="40" rx="4"/><text class="m mid" x="830" y="162">−1.517·(−0.065) = 0.099</text></g>
+<text class="sm" x="20" y="212">Sólo la fila A de J importa (y one-hot). Fila A = p_A(δ_Aj − p_j). Multiplicada por −1/p_A:  −(δ_Aj − p_j) = p_j − y_j.</text>
+<text class="s" x="20" y="236">El 1/p de la derivada del log cancela el p del Jacobiano. Por eso frameworks fusionan softmax + CE en un solo kernel.</text>
+</svg></div><figcaption>Jacobiano K×K se calcula aquí sólo para mostrar la cancelación. En la práctica nunca se materializa.</figcaption></figure>
+
+<h3>Estabilidad numérica y temperatura</h3>
+<div class="cols"><div>
+<h4>Overflow sin restar el máximo</h4>
+<div class="mini-wrap"><table><thead><tr><th>logits</th><th>exp ingenuo</th><th>p ingenuo</th><th>p estable</th></tr></thead><tbody>
+<tr><td>(1000, 999)</td><td class="n">(inf, inf)</td><td class="n">NaN</td><td class="n">(0.731, 0.269)</td></tr>
+<tr><td>(−1000, −1001)</td><td class="n">(0, 0)</td><td class="n">NaN</td><td class="n">(0.731, 0.269)</td></tr>
+</tbody></table></div>
+</div><div>
+<h4>Temperatura: p = softmax(z / T)</h4>
+<div class="mini-wrap"><table><thead><tr><th>T</th><th class="n">p_A</th><th class="n">p_B</th><th class="n">p_C</th><th>efecto</th></tr></thead><tbody>
+<tr><td>0.5</td><td class="n">0.864</td><td class="n">0.117</td><td class="n">0.019</td><td>más confiado</td></tr>
+<tr class="hl"><td>1</td><td class="n">0.659</td><td class="n">0.242</td><td class="n">0.099</td><td>original</td></tr>
+<tr><td>2</td><td class="n">0.502</td><td class="n">0.304</td><td class="n">0.194</td><td>más plano</td></tr>
+</tbody></table></div>
+</div></div>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Softmax</dt><dd>p<sub>k</sub> = exp(z<sub>k</sub> − m) / Σ<sub>j</sub> exp(z<sub>j</sub> − m),   m = max<sub>j</sub> z<sub>j</sub></dd></div>
+<div class="row"><dt>Log-sum-exp</dt><dd>log Σ<sub>j</sub> e<sup>z<sub>j</sub></sup> = m + log Σ<sub>j</sub> e<sup>z<sub>j</sub> − m</sup></dd></div>
+<div class="row"><dt>Cross-entropy</dt><dd>ℓ = −Σ<sub>k</sub> y<sub>k</sub> log p<sub>k</sub> = LSE(z) − z<sub>y</sub></dd></div>
+<div class="row"><dt>Jacobiano</dt><dd>∂p<sub>i</sub>/∂z<sub>j</sub> = p<sub>i</sub>(δ<sub>ij</sub> − p<sub>j</sub>)</dd></div>
+<div class="row"><dt>Gradiente</dt><dd>∂ℓ/∂z<sub>j</sub> = Σ<sub>i</sub> (−y<sub>i</sub>/p<sub>i</sub>) p<sub>i</sub>(δ<sub>ij</sub> − p<sub>j</sub>) = p<sub>j</sub> − y<sub>j</sub></dd></div>
+<div class="row"><dt>Label smoothing</dt><dd>y′ = (1 − α) y + α/K   ⇒   ∂ℓ/∂z = p − y′   (nunca empuja a logits infinitos)</dd></div>
+<div class="row"><dt>Caso binario</dt><dd>K = 2 ≡ sigmoide: p = σ(z₁ − z₀),   BCE,   gradiente p − y</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 360" role="img" aria-label="Softmax y cross-entropy en entrenamiento, en un servicio de clasificación y en un modelo de lenguaje.">
+<rect class="lane" x="4" y="6" width="952" height="96" rx="6"/><text class="cap" x="16" y="26">offline · entrenamiento</text>
+<g class="op"><rect x="20" y="36" width="150" height="54" rx="5"/><text class="mid" x="95" y="60">red</text><text class="s mid" x="95" y="78">→ logits B×K</text></g>
+<g class="hot"><rect x="210" y="36" width="260" height="54" rx="5"/><text class="h mid" x="340" y="60">CrossEntropyLoss(logits, y)</text><text class="s mid" x="340" y="78">log_softmax + NLL fusionados · label smoothing</text></g>
+<g class="st"><rect x="510" y="36" width="190" height="54" rx="5"/><text class="mid" x="605" y="60">calibrar T en validación</text><text class="s mid" x="605" y="78">minimizar NLL sólo en T</text></g>
+<g class="st"><rect x="740" y="36" width="200" height="54" rx="5"/><text class="mid" x="840" y="60">artefacto</text><text class="s mid" x="840" y="78">pesos + T + umbral τ</text></g>
+<path class="e fw" d="M170 63H206"/><path class="e st" d="M470 63H506"/><path class="e st" d="M700 63H736"/>
+
+<rect class="lane" x="4" y="114" width="952" height="110" rx="6"/><text class="cap" x="16" y="134">online · clasificador (moderación, intención, triage)</text>
+<g class="in"><rect x="20" y="146" width="120" height="60" rx="5"/><text class="mid" x="80" y="172">request</text><text class="s mid" x="80" y="190">texto / imagen</text></g>
+<g class="op"><rect x="170" y="146" width="130" height="60" rx="5"/><text class="mid" x="235" y="172">forward</text><text class="s mid" x="235" y="190">logits</text></g>
+<g class="hot"><rect x="330" y="146" width="150" height="60" rx="5"/><text class="m mid" x="405" y="172">softmax(z / T)</text><text class="s mid" x="405" y="190">probabilidad calibrada</text></g>
+<g class="dec"><rect x="510" y="146" width="160" height="60" rx="5"/><text class="m mid" x="590" y="172">p_max ≥ τ ?</text><text class="s mid" x="590" y="190">sí: auto · no: humano</text></g>
+<g class="out"><rect x="700" y="146" width="110" height="60" rx="5"/><text class="mid" x="755" y="172">respuesta</text><text class="s mid" x="755" y="190">clase + p</text></g>
+<g class="bad"><rect x="830" y="146" width="115" height="60" rx="5"/><text class="mid" x="887" y="172">monitoreo</text><text class="s mid" x="887" y="190">histograma de p</text></g>
+<path class="e fw" d="M140 176H166"/><path class="e fw" d="M300 176H326"/><path class="e fw" d="M480 176H506"/><path class="e dec" d="M670 176H696"/><path class="e nt" d="M810 176H826"/>
+<path class="e st" d="M840 90V106H405V142"/><text class="s c3" x="600" y="104">T, τ</text>
+
+<rect class="lane" x="4" y="236" width="952" height="118" rx="6"/><text class="cap" x="16" y="256">online · modelo de lenguaje (un token por iteración)</text>
+<g class="in"><rect x="20" y="268" width="130" height="60" rx="5"/><text class="mid" x="85" y="294">contexto</text><text class="s mid" x="85" y="312">tokens previos</text></g>
+<g class="op"><rect x="180" y="268" width="140" height="60" rx="5"/><text class="mid" x="250" y="294">transformer</text><text class="s mid" x="250" y="312">logits sobre V ≈ 10⁵</text></g>
+<g class="hot"><rect x="350" y="268" width="160" height="60" rx="5"/><text class="m mid" x="430" y="294">softmax(z / T)</text><text class="s mid" x="430" y="312">T &lt; 1 preciso · T &gt; 1 creativo</text></g>
+<g class="dec"><rect x="540" y="268" width="150" height="60" rx="5"/><text class="mid" x="615" y="294">top-k / top-p</text><text class="s mid" x="615" y="312">recorta cola</text></g>
+<g class="out"><rect x="720" y="268" width="120" height="60" rx="5"/><text class="mid" x="780" y="294">muestrear</text><text class="s mid" x="780" y="312">siguiente token</text></g>
+<path class="e fw" d="M150 298H176"/><path class="e fw" d="M320 298H346"/><path class="e fw" d="M510 298H536"/><path class="e dec" d="M690 298H716"/>
+<path class="e st" d="M840 298H900V346H85V332"/><text class="s c3" x="470" y="342">se agrega al contexto · repetir</text>
+</svg></div><figcaption>Entrenamiento usa logits directo (ruta estable). Serving aplica T calibrada, decide con umbral, registra p para detectar drift.</figcaption></figure>
+<dl class="kv">
+<dt>Argmax no necesita softmax</dt><dd>Softmax es monótona: clase top sale igual de logits. Calcular p sólo si se usa: umbral, ranking, logging.</dd>
+<dt>Costo</dt><dd>O(B·K). Con vocabulario 10⁵ la capa de salida domina memoria; trucos: sampled softmax, adaptive softmax, cálculo por bloques.</dd>
+<dt>Monitorear</dt><dd>Distribución de p_max en producción. Si baja con el tiempo = datos nuevos fuera de distribución. Si sube a ~1 siempre = sobreconfianza.</dd>
+<dt>Re-calibrar</dt><dd>Re-ajustar T con datos etiquetados recientes es barato (1 parámetro) y no toca pesos.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>Aplicar softmax y luego <code>CrossEntropyLoss</code> de PyTorch: ya incluye log_softmax. Doble softmax = gradientes aplastados.</li>
+<li>p = 0.99 no significa 99% de acierto. Redes modernas son sobreconfiadas; calibrar.</li>
+<li>Clases desbalanceadas: CE domina con clase mayoritaria. Pesos por clase o focal loss.</li>
+<li>Multi-etiqueta (varias clases verdaderas a la vez): sigmoide por clase + BCE, no softmax.</li>
+</ul>

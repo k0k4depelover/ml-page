@@ -1,0 +1,147 @@
+<p class="lead">Backprop da gradiente <i>g</i>. Optimizador decide el paso. Diferencia entre SGD, Momentum y Adam = qué estado guardan entre iteraciones y cómo lo usan.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 420" role="img" aria-label="Un mismo gradiente entra a tres optimizadores: SGD sin estado, Momentum con velocidad v, Adam con momentos m y v y corrección de sesgo.">
+<g class="in"><rect x="20" y="110" width="150" height="50" rx="5"/><text class="m mid" x="95" y="132">θₜ, batch</text><text class="s mid" x="95" y="150">B muestras</text></g>
+<path class="e nt" d="M95 160V186"/>
+<g class="op"><rect x="20" y="190" width="150" height="56" rx="5"/><text class="m mid" x="95" y="215">g = ∇L(θₜ)</text><text class="s mid" x="95" y="234">backprop, promedio en B</text></g>
+
+<rect class="lane" x="200" y="10" width="756" height="80" rx="6"/><text class="cap" x="212" y="30">SGD</text>
+<g class="op"><rect x="330" y="30" width="220" height="44" rx="5"/><text class="m mid" x="440" y="57">θ ← θ − η g</text></g>
+<g class="out"><rect x="780" y="30" width="160" height="44" rx="5"/><text class="m mid" x="860" y="50">θₜ₊₁</text><text class="s mid" x="860" y="66">estado: ninguno</text></g>
+<path class="e fw" d="M170 218H190V52H326"/><path class="e fw" d="M550 52H776"/>
+
+<rect class="lane" x="200" y="100" width="756" height="110" rx="6"/><text class="cap" x="212" y="118">Momentum</text>
+<g class="st"><rect x="320" y="132" width="210" height="50" rx="5"/><text class="m mid" x="425" y="155">v ← βv + g</text><text class="s mid" x="425" y="172">velocidad = suma de pasos</text></g>
+<path class="e st" d="M500 182V198H350V186"/><text class="s c3" x="430" y="206">×β</text>
+<g class="op"><rect x="570" y="132" width="170" height="50" rx="5"/><text class="m mid" x="655" y="162">θ ← θ − η v</text></g>
+<g class="out"><rect x="780" y="132" width="160" height="50" rx="5"/><text class="m mid" x="860" y="152">θₜ₊₁</text><text class="s mid" x="860" y="170">estado: v (1× params)</text></g>
+<path class="e fw" d="M190 157H316"/><path class="e st" d="M530 157H566"/><path class="e fw" d="M740 157H776"/>
+
+<rect class="lane" x="200" y="220" width="756" height="194" rx="6"/><text class="cap" x="212" y="238">Adam</text>
+<g class="st"><rect x="320" y="250" width="230" height="50" rx="5"/><text class="m mid" x="435" y="273">m ← β₁m + (1−β₁) g</text><text class="s mid" x="435" y="291">1er momento: dirección media</text></g>
+<path class="e st" d="M520 300V314H350V304"/>
+<g class="st"><rect x="320" y="330" width="230" height="50" rx="5"/><text class="m mid" x="435" y="353">v ← β₂v + (1−β₂) g²</text><text class="s mid" x="435" y="371">2º momento: escala por coordenada</text></g>
+<path class="e st" d="M520 380V394H350V384"/>
+<g class="op"><rect x="580" y="250" width="180" height="130" rx="5"/><text class="m mid" x="670" y="295">m̂ = m / (1 − β₁ᵗ)</text><text class="m mid" x="670" y="325">v̂ = v / (1 − β₂ᵗ)</text><text class="s mid" x="670" y="352">corrige arranque en 0</text></g>
+<g class="out"><rect x="790" y="250" width="155" height="130" rx="5"/><text class="m mid" x="867" y="290">θ ← θ − η ·</text><text class="m mid" x="867" y="314">m̂ / (√v̂ + ε)</text><text class="s mid" x="867" y="345">estado: m, v</text><text class="s mid" x="867" y="361">(2× params)</text></g>
+<path class="e fw" d="M190 218V275H316"/><path class="e fw" d="M190 355H316"/><text class="s c1" x="270" y="348">g²</text>
+<path class="e st" d="M550 275H576"/><path class="e st" d="M550 355H576"/><path class="e fw" d="M760 315H786"/>
+</svg></div><figcaption>Mismo g, tres reglas. Verde = estado que sobrevive entre iteraciones y va al checkpoint.</figcaption></figure>
+
+<h3>Paso a paso: Adam en un valle alargado</h3>
+<p>Pérdida <i>L</i> = ½(10 θ₁² + 0.5 θ₂²). Eje θ₁ empinado, eje θ₂ plano: gradientes difieren 20×. Inicio θ = (1, 1), η = 0.1, β₁ = 0.9, β₂ = 0.999.</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 560 380" role="img" aria-label="Tabla de valores de Adam por coordenada en las dos primeras iteraciones.">
+<text class="cap" x="20" y="30">magnitud</text><text class="h mid" x="300" y="24">θ₁ (empinado)</text><text class="s mid" x="300" y="40">∂L/∂θ₁ = 10 θ₁</text><text class="h mid" x="460" y="24">θ₂ (plano)</text><text class="s mid" x="460" y="40">∂L/∂θ₂ = 0.5 θ₂</text>
+<path class="ln" d="M20 50H540"/>
+<g data-step="1"><text x="20" y="80">g</text><text class="m mid c1" x="300" y="80">10</text><text class="m mid c1" x="460" y="80">0.5</text></g>
+<g data-step="2"><text x="20" y="120">m = 0.1·g</text><text class="m mid c3" x="300" y="120">1.0</text><text class="m mid c3" x="460" y="120">0.05</text></g>
+<g data-step="3"><text x="20" y="160">v = 0.001·g²</text><text class="m mid c3" x="300" y="160">0.1</text><text class="m mid c3" x="460" y="160">0.00025</text></g>
+<g data-step="4"><text x="20" y="200">m̂ ; v̂</text><text class="m mid" x="300" y="200">10 ; 100</text><text class="m mid" x="460" y="200">0.5 ; 0.25</text></g>
+<g data-step="5"><text x="20" y="240">paso η·m̂/√v̂</text><text class="m mid ac" x="300" y="240">0.1</text><text class="m mid ac" x="460" y="240">0.1</text><text x="20" y="270">θ nuevo</text><text class="m mid" x="300" y="270">0.9</text><text class="m mid" x="460" y="270">0.9</text></g>
+<path class="ln" d="M20 284H540"/>
+<g data-step="6"><text x="20" y="312">t = 2: paso</text><text class="m mid ac" x="300" y="312">0.0996 → 0.800</text><text class="m mid ac" x="460" y="312">0.0996 → 0.800</text></g>
+<g data-step="7"><text x="20" y="352">SGD η = 0.1</text><text class="m mid c4" x="300" y="352">1 → 0.0</text><text class="m mid c4" x="460" y="352">1 → 0.95</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Gradiente</b><span class="eq">g = (10·1, 0.5·1) = (10, 0.5)</span><p>Escalas 20× distintas. SGD daría pasos 20× distintos.</p></li>
+<li><b class="t">2 · Primer momento</b><span class="eq">m = 0.9·0 + 0.1·g = (1.0, 0.05)</span><p>Promedio exponencial de g. Arranca en 0: sesgado hacia 0.</p></li>
+<li><b class="t">3 · Segundo momento</b><span class="eq">v = 0.999·0 + 0.001·g² = (0.1, 0.00025)</span><p>Promedio exponencial de g². Mide tamaño típico del gradiente por coordenada.</p></li>
+<li><b class="t">4 · Corrección de sesgo</b><span class="eq">m̂ = m / (1 − 0.9¹) = (10, 0.5)</span><span class="eq">v̂ = v / (1 − 0.999¹) = (100, 0.25)</span><p>Divide entre la masa acumulada. Sin esto, primeros pasos serían diminutos.</p></li>
+<li><b class="t">5 · Paso normalizado</b><span class="eq">Δ = 0.1 · (10/√100, 0.5/√0.25) = (0.1, 0.1)</span><span class="eq">θ = (0.9, 0.9)</span><p>m̂/√v̂ ≈ signo del gradiente. Paso ≈ η en cada eje, sin importar escala.</p></li>
+<li><b class="t">6 · Segunda iteración</b><span class="eq">g = (9, 0.45),  m = (1.8, 0.09),  v = (0.1809, 0.000452)</span><span class="eq">m̂ = (9.474, 0.474),  v̂ = (90.50, 0.226)  →  Δ = (0.0996, 0.0996)</span><p>Ambos ejes siguen avanzando igual.</p></li>
+<li><b class="t">7 · Contraste con SGD</b><span class="eq">θ₁: 1 − 0.1·10 = 0,   θ₂: 1 − 0.1·0.5 = 0.95</span><p>Eje plano se arrastra (5% por paso). Subir η a 0.21 hace que θ₁ diverja: |1 − 0.21·10| &gt; 1. SGD necesita η &lt; 2/curvatura máxima.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Trayectorias en el mismo valle</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 330" role="img" aria-label="Curvas de nivel de un valle alargado y 30 pasos de SGD, Momentum y Adam desde el mismo punto.">
+<defs><clipPath id="clip-opt"><rect x="10" y="10" width="460" height="310" rx="4"/></clipPath></defs>
+<rect class="cell" x="10" y="10" width="460" height="310" rx="4"/>
+<g clip-path="url(#clip-opt)">
+<g class="si" style="stroke:var(--rule)"><ellipse cx="240" cy="250" rx="17" ry="45"/><ellipse cx="240" cy="250" rx="34" ry="89"/><ellipse cx="240" cy="250" rx="54" ry="141"/><ellipse cx="240" cy="250" rx="76" ry="200"/><ellipse cx="240" cy="250" rx="108" ry="283"/><ellipse cx="240" cy="250" rx="152" ry="400"/></g>
+<polyline class="s1" points="70,50 376,68 131,84 327,99 170,113 296,125 195,136 276,147 211,156 263,164 222,172 255,179 228,186 249,191 233,197 246,201 235,206 244,210 237,213 242,217 238,220 242,222 239,225 241,227 239,229 241,231 239,233 240,234 240,236 240,237 240,238"/>
+<polyline class="s4" points="70,50 121,53 203,59 287,67 349,77 372,88 353,101 302,115 238,129 180,144 146,159 144,173 171,188 216,202 263,215 299,228 314,239 305,250 277,259 241,268 209,275 189,281 186,286 200,290 224,293 251,295 272,297 281,297 277,297 262,296 242,294"/>
+<polyline class="s2" points="70,50 90,62 111,74 131,86 151,98 170,110 188,121 206,133 223,144 238,155 252,166 264,177 274,187 282,197 287,207 291,216 293,224 293,233 291,240 288,247 284,254 278,260 272,265 266,269 260,273 253,276 247,279 241,281 235,282 230,283 226,283"/>
+<circle class="fi" cx="70" cy="50" r="5"/><circle class="fa" cx="240" cy="250" r="5"/>
+</g>
+<text class="s" x="80" y="44">inicio (−1, 2)</text><text class="s" x="250" y="246">mínimo</text>
+<text class="s" x="20" y="314">eje horizontal θ₁: curvatura 10 · eje vertical θ₂: curvatura 0.5</text>
+<g transform="translate(500 30)">
+<text class="h" x="0" y="0">L después de k pasos</text>
+<text class="s" x="270" y="0">k = 10</text><text class="s" x="350" y="0">k = 30</text>
+<path class="s1" d="M0 30H30"/><text x="40" y="35">SGD η = 0.18</text><text class="m" x="270" y="35">0.209</text><text class="m" x="350" y="35">0.0035</text>
+<path class="s4" d="M0 65H30"/><text x="40" y="70">Momentum η = 0.03, β = 0.9</text><text class="m" x="270" y="70">1.72</text><text class="m" x="350" y="70">0.049</text>
+<path class="s2" d="M0 100H30"/><text x="40" y="105">Adam η = 0.12</text><text class="m" x="270" y="105">0.201</text><text class="m" x="350" y="105">0.061</text>
+<text class="s" x="0" y="185">SGD: zigzag en eje empinado. η cerca del límite 2/10.</text>
+<text class="s" x="0" y="205">Momentum: acumula velocidad, se pasa del mínimo y oscila.</text>
+<text class="s" x="0" y="225">Adam: casi recto (paso ≈ η por eje), frena cerca del fondo.</text>
+<text class="s" x="0" y="255">En un cuadrático convexo con η bien afinado, SGD gana.</text>
+<text class="s" x="0" y="275">Adam gana cuando no se puede afinar η por eje: redes con</text>
+<text class="s" x="0" y="291">millones de parámetros y escalas de gradiente dispares.</text>
+</g>
+</svg></div><figcaption>30 iteraciones de cada uno, mismas condiciones iniciales. Trayectorias calculadas con NumPy.</figcaption></figure>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>SGD mini-batch</dt><dd>θ<sub>t+1</sub> = θ<sub>t</sub> − η · (1/B) Σ<sub>i∈batch</sub> ∇ℓ<sub>i</sub>(θ<sub>t</sub>)</dd></div>
+<div class="row"><dt>Límite de estabilidad</dt><dd>cuadrático con curvatura λ<sub>max</sub>: converge si η &lt; 2 / λ<sub>max</sub></dd></div>
+<div class="row"><dt>Momentum</dt><dd>v<sub>t</sub> = β v<sub>t−1</sub> + g<sub>t</sub>,   θ<sub>t+1</sub> = θ<sub>t</sub> − η v<sub>t</sub>   (paso efectivo ≈ η/(1−β) en dirección constante)</dd></div>
+<div class="row"><dt>Nesterov</dt><dd>g<sub>t</sub> = ∇L(θ<sub>t</sub> − ηβ v<sub>t−1</sub>)   (mira adelante antes de medir)</dd></div>
+<div class="row"><dt>RMSProp</dt><dd>v<sub>t</sub> = β₂ v<sub>t−1</sub> + (1−β₂) g<sub>t</sub>²,   θ<sub>t+1</sub> = θ<sub>t</sub> − η g<sub>t</sub> / (√v<sub>t</sub> + ε)</dd></div>
+<div class="row"><dt>Sesgo de m</dt><dd>m<sub>t</sub> = (1−β₁) Σ<sub>k≤t</sub> β₁<sup>t−k</sup> g<sub>k</sub>  ⇒  E[m<sub>t</sub>] ≈ (1 − β₁<sup>t</sup>) E[g]  ⇒  m̂ = m<sub>t</sub>/(1−β₁<sup>t</sup>)</dd></div>
+<div class="row"><dt>Adam</dt><dd>θ<sub>t+1</sub> = θ<sub>t</sub> − η m̂<sub>t</sub> / (√v̂<sub>t</sub> + ε),   β₁ = 0.9, β₂ = 0.999, ε = 10⁻⁸</dd></div>
+<div class="row"><dt>AdamW</dt><dd>θ<sub>t+1</sub> = θ<sub>t</sub> − η (m̂<sub>t</sub>/(√v̂<sub>t</sub>+ε) + λ θ<sub>t</sub>)   (decay fuera del gradiente: no lo divide √v̂)</dd></div>
+</dl>
+
+<h3>Calendario de learning rate</h3>
+<figure class="dgm narrow"><div class="scroll"><svg viewBox="0 0 680 240" role="img" aria-label="Learning rate con warmup lineal y decaimiento coseno.">
+<path class="ln" d="M60 40H640M60 200H640"/><path class="ln ink" d="M60 20V200H640"/>
+<text class="s end" x="54" y="44">η_max</text><text class="s end" x="54" y="204">0</text>
+<path class="ln dash" d="M116 40V200"/>
+<polyline class="sa" points="60,200 116,40 172,45 228,59 284,80 340,106 396,134 452,160 508,181 564,195 620,200"/>
+<text class="s mid" x="88" y="220">warmup</text><text class="s mid" x="370" y="220">decaimiento coseno</text><text class="s end" x="640" y="232">paso de entrenamiento →</text>
+<text class="sm" x="300" y="66">η(s) = η_max · ½(1 + cos(π·(s − s_w)/(S − s_w)))</text>
+</svg></div><figcaption>Warmup: m y v aún ruidosos, pasos chicos al inicio. Coseno: pasos finos al final para asentar en el mínimo.</figcaption></figure>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 330" role="img" aria-label="Memoria por parámetro según optimizador y entrenamiento distribuido con all-reduce.">
+<rect class="lane" x="4" y="6" width="440" height="318" rx="6"/><text class="cap" x="16" y="26">memoria por parámetro (fp32)</text>
+<text x="20" y="62">SGD</text><rect class="f1" x="120" y="48" width="80" height="22"/><rect class="f2" x="200" y="48" width="80" height="22"/><text class="s" x="290" y="64">8 B</text>
+<text x="20" y="102">Momentum</text><rect class="f1" x="120" y="88" width="80" height="22"/><rect class="f2" x="200" y="88" width="80" height="22"/><rect class="f3" x="280" y="88" width="80" height="22"/><text class="s" x="370" y="104">12 B</text>
+<text x="20" y="142">Adam</text><rect class="f1" x="120" y="128" width="80" height="22"/><rect class="f2" x="200" y="128" width="80" height="22"/><rect class="f3" x="280" y="128" width="80" height="22"/><rect class="soft3" x="360" y="128" width="80" height="22" style="stroke:var(--c3)"/><text class="s" x="404" y="168">16 B</text>
+<text class="s mid c1" x="160" y="188">θ</text><text class="s mid c2" x="240" y="188">g</text><text class="s mid c3" x="320" y="188">v (Mom.) / m</text><text class="s mid c3" x="400" y="188">v (Adam)</text>
+<text class="sm" x="20" y="226">7·10⁹ params × 16 B = 112 GB</text>
+<text class="s" x="20" y="248">Más que una GPU de 80 GB, sin contar activaciones.</text>
+<text class="s" x="20" y="268">Salida: ZeRO / FSDP reparte θ, g, m, v entre GPUs;</text>
+<text class="s" x="20" y="288">optimizadores de 8 bits; Adafactor factoriza v.</text>
+
+<rect class="lane" x="456" y="6" width="500" height="318" rx="6"/><text class="cap" x="468" y="26">data parallel · un paso</text>
+<g class="op"><rect x="470" y="44" width="140" height="44" rx="5"/><text class="mid" x="540" y="64">GPU 1</text><text class="s mid" x="540" y="80">fwd + bwd shard 1</text></g>
+<g class="op"><rect x="470" y="98" width="140" height="44" rx="5"/><text class="mid" x="540" y="118">GPU 2</text><text class="s mid" x="540" y="134">fwd + bwd shard 2</text></g>
+<g class="op"><rect x="470" y="152" width="140" height="44" rx="5"/><text class="mid" x="540" y="172">GPU N</text><text class="s mid" x="540" y="188">fwd + bwd shard N</text></g>
+<g class="op"><rect x="650" y="90" width="120" height="60" rx="5"/><text class="mid" x="710" y="114">all-reduce</text><text class="m mid" x="710" y="136">ḡ = (1/N) Σ gᵢ</text></g>
+<path class="e bw" d="M610 66H630V110H646"/><path class="e bw" d="M610 120H646"/><path class="e bw" d="M610 174H630V130H646"/>
+<g class="hot"><rect x="800" y="90" width="145" height="60" rx="5"/><text class="h mid" x="872" y="114">optimizer.step</text><text class="s mid" x="872" y="132">mismo ḡ en cada réplica</text></g>
+<path class="e bw" d="M770 120H796"/>
+<g class="st"><rect x="660" y="220" width="285" height="60" rx="5"/><text class="mid" x="802" y="244">checkpoint</text><text class="s mid" x="802" y="262">θ, m, v, t, estado del scheduler, RNG</text></g>
+<path class="e st" d="M872 150V216"/>
+<text class="s" x="470" y="240">Batch efectivo = N × B.</text>
+<text class="s" x="470" y="258">Regla lineal: B ×k → η ×k</text>
+<text class="s" x="470" y="276">(con warmup).</text>
+<text class="s" x="470" y="306">Reanudar sin m, v = picos de pérdida.</text>
+</svg></div><figcaption>Adam cuadruplica memoria respecto a sólo θ. Su estado es parte del modelo en entrenamiento: va al checkpoint.</figcaption></figure>
+<dl class="kv">
+<dt>Elección por defecto</dt><dd>Redes profundas, transformers: AdamW + warmup + coseno. Visión clásica (CNN) con mucho ajuste: SGD + momentum 0.9 suele generalizar mejor. Tabulares: no aplica (árboles).</dd>
+<dt>Qué monitorear</dt><dd>Pérdida de train por paso, lr actual, norma de g, ratio ‖Δθ‖/‖θ‖ ≈ 10⁻³ sano. Pérdida NaN: bajar η, revisar ε, clip de gradiente.</dd>
+<dt>Re-entrenar</dt><dd>Fine-tuning: cargar θ, reiniciar m y v, η 10–100× menor, warmup corto.</dd>
+<dt>Hiperparámetro crítico</dt><dd>η. Barrido logarítmico (10⁻⁵ … 10⁻¹) o LR range test: subir η exponencialmente y mirar dónde la pérdida deja de bajar.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>Weight decay con Adam (no AdamW): penalización se divide por √v̂ y casi desaparece en pesos con gradiente grande.</li>
+<li>Cambiar batch sin ajustar η: dinámica distinta, resultados no comparables.</li>
+<li>ε muy chico con fp16: división por ~0 explota. Usar bf16 o ε = 10⁻⁶.</li>
+<li>Comparar optimizadores con mismo η: cada uno tiene su η óptimo; comparar con su mejor η.</li>
+</ul>

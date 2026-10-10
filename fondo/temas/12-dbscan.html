@@ -1,0 +1,120 @@
+<p class="lead">DBSCAN define cluster como región densa conectada. Punto núcleo: tiene al menos minPts vecinos dentro de radio ε. Clusters = componentes conexas de núcleos; bordes se pegan; resto es ruido. No pide K, encuentra formas arbitrarias.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 380" role="img" aria-label="Índice espacial, consultas de rango epsilon, clasificación núcleo, borde y ruido, expansión BFS y etiquetas.">
+<g class="in"><rect x="20" y="30" width="140" height="70" rx="5"/><text class="mid" x="90" y="54">X (n × d)</text><text class="m mid" x="90" y="76">ε, minPts</text><text class="s mid" x="90" y="92">minPts cuenta al propio punto</text></g>
+<g class="op"><rect x="200" y="30" width="190" height="70" rx="5"/><text class="mid" x="295" y="54">índice espacial</text><text class="s mid" x="295" y="72">KD-tree / ball tree</text><text class="s mid" x="295" y="88">build O(n log n)</text></g>
+<g class="op"><rect x="430" y="30" width="230" height="70" rx="5"/><text class="mid" x="545" y="54">consulta de rango</text><text class="m mid" x="545" y="76">N_ε(x) = {y : ‖x − y‖ ≤ ε}</text><text class="s mid" x="545" y="92">≈ O(log n) c/u en d bajo</text></g>
+<g class="dec"><rect x="700" y="30" width="240" height="70" rx="5"/><text class="m mid" x="820" y="56">|N_ε(x)| ≥ minPts ?</text><text class="s mid" x="820" y="78">sí: núcleo · no: candidato</text><text class="s mid" x="820" y="92">a borde o ruido</text></g>
+<path class="e fw" d="M160 65H196"/><path class="e fw" d="M390 65H426"/><path class="e dec" d="M660 65H696"/>
+<rect class="grp" x="200" y="140" width="740" height="130" rx="6"/><text class="cap" x="212" y="160">expansión (BFS por cada núcleo no visitado)</text>
+<g class="op"><rect x="220" y="176" width="200" height="74" rx="5"/><text class="mid" x="320" y="200">nuevo cluster c</text><text class="s mid" x="320" y="220">cola ← N_ε(núcleo)</text><text class="s mid" x="320" y="236">etiquetar c</text></g>
+<g class="op"><rect x="460" y="176" width="220" height="74" rx="5"/><text class="mid" x="570" y="200">sacar y de la cola</text><text class="s mid" x="570" y="220">etiquetar c</text><text class="s mid" x="570" y="236">si y es núcleo: encolar N_ε(y)</text></g>
+<g class="op"><rect x="720" y="176" width="200" height="74" rx="5"/><text class="mid" x="820" y="200">cola vacía</text><text class="s mid" x="820" y="220">cluster completo</text><text class="s mid" x="820" y="236">siguiente núcleo libre</text></g>
+<path class="e fw" d="M420 213H456"/><path class="e fw" d="M680 213H716"/><path class="e st" d="M570 250V262H520V254"/>
+<path class="e dec" d="M820 100V120H320V172"/>
+<g class="out"><rect x="200" y="300" width="230" height="64" rx="5"/><text class="mid" x="315" y="324">núcleo</text><text class="s mid" x="315" y="344">expande el cluster</text></g>
+<g class="out"><rect x="455" y="300" width="230" height="64" rx="5"/><text class="mid" x="570" y="324">borde</text><text class="s mid" x="570" y="344">vecino de un núcleo; no expande</text></g>
+<g class="out"><rect x="710" y="300" width="230" height="64" rx="5"/><text class="mid" x="825" y="324">ruido: etiqueta −1</text><text class="s mid" x="825" y="344">ni núcleo ni alcanzable</text></g>
+<path class="e nt" d="M820 270V296"/>
+<text class="h" x="20" y="170">Costo</text>
+<text class="s" x="20" y="192">Promedio O(n log n)</text>
+<text class="s" x="20" y="208">con índice y d bajo.</text>
+<text class="s" x="20" y="230">Peor caso O(n²): ε grande</text>
+<text class="s" x="20" y="246">o d alto (índice inútil).</text>
+<text class="s" x="20" y="268">Memoria: listas de vecinos</text>
+<text class="s" x="20" y="284">pueden ser O(n²).</text>
+</svg></div><figcaption>Grafo implícito: arista entre núcleos a distancia ≤ ε. Clusters = componentes conexas. Bordes se asignan al primer cluster que los alcanza.</figcaption></figure>
+
+<h3>Paso a paso: ε = 1, minPts = 3</h3>
+<p>Diez puntos (0…9). Círculo = vecindario ε del punto procesado.</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 580 350" role="img" aria-label="Diez puntos, círculos de radio epsilon, expansión de dos clusters y un punto de ruido.">
+<path class="ln ink" d="M40 340H450M40 340V10"/>
+<text class="s mid" x="90" y="354">1</text><text class="s mid" x="190" y="354">3</text><text class="s mid" x="290" y="354">5</text><text class="s mid" x="390" y="354">7</text><text class="s end" x="34" y="294">1</text><text class="s end" x="34" y="194">3</text><text class="s end" x="34" y="94">5</text>
+<g data-step="1" class="once"><circle class="soft1" cx="90" cy="290" r="50" style="stroke:var(--c1);stroke-dasharray:4 3"/></g>
+<g data-step="2" class="once"><circle class="soft1" cx="115" cy="280" r="50" style="stroke:var(--c1);stroke-dasharray:4 3"/><circle class="soft1" cx="100" cy="250" r="50" style="stroke:var(--c1);stroke-dasharray:4 3;opacity:.6"/></g>
+<g data-step="3" class="once"><circle class="soft1" cx="140" cy="265" r="50" style="stroke:var(--c1);stroke-dasharray:4 3"/></g>
+<g data-step="4" class="once"><circle class="soft4" cx="180" cy="260" r="50" style="stroke:var(--c4);stroke-dasharray:4 3"/></g>
+<g data-step="5" class="once"><circle class="soft2" cx="340" cy="90" r="50" style="stroke:var(--c2);stroke-dasharray:4 3"/></g>
+<g data-step="6" class="once"><circle class="soft4" cx="240" cy="40" r="50" style="stroke:var(--c4);stroke-dasharray:4 3"/></g>
+<g class="cell"><circle class="pt" cx="90" cy="290" r="7"/><circle class="pt" cx="115" cy="280" r="7"/><circle class="pt" cx="100" cy="250" r="7"/><circle class="pt" cx="140" cy="265" r="7"/><circle class="pt" cx="180" cy="260" r="7"/><circle class="pt" cx="340" cy="90" r="7"/><circle class="pt" cx="365" cy="70" r="7"/><circle class="pt" cx="350" cy="110" r="7"/><circle class="pt" cx="390" cy="90" r="7"/><circle class="pt" cx="240" cy="40" r="7"/></g>
+<g data-step="1-6" class="f1"><circle class="pt" cx="90" cy="290" r="7"/></g>
+<g data-step="2-6" class="f1"><circle class="pt" cx="115" cy="280" r="7"/><circle class="pt" cx="100" cy="250" r="7"/></g>
+<g data-step="3-6" class="f1"><circle class="pt" cx="140" cy="265" r="7"/></g>
+<g data-step="4-6"><circle cx="180" cy="260" r="7" style="fill:var(--sheet);stroke:var(--c1);stroke-width:3"/></g>
+<g data-step="5-6" class="f2"><circle class="pt" cx="340" cy="90" r="7"/><circle class="pt" cx="365" cy="70" r="7"/><circle class="pt" cx="350" cy="110" r="7"/><circle class="pt" cx="390" cy="90" r="7"/></g>
+<g data-step="6"><path class="s4" d="M233 33L247 47M247 33L233 47" style="stroke-width:3"/></g>
+<text class="s" x="72" y="306">0</text><text class="s" x="124" y="298">1</text><text class="s" x="84" y="240">2</text><text class="s" x="146" y="252">3</text><text class="s" x="188" y="250">4</text><text class="s" x="324" y="82">5</text><text class="s" x="372" y="60">6</text><text class="s" x="336" y="130">7</text><text class="s" x="398" y="82">8</text><text class="s" x="252" y="36">9</text>
+<text class="h" x="465" y="30">cola BFS</text>
+<g data-step="1" class="once"><text class="m" x="465" y="54">[1, 2]</text></g>
+<g data-step="2" class="once"><text class="m" x="465" y="54">[3]</text></g>
+<g data-step="3" class="once"><text class="m" x="465" y="54">[4]</text></g>
+<g data-step="4" class="once"><text class="m" x="465" y="54">[ ] fin c₁</text></g>
+<g data-step="5" class="once"><text class="m" x="465" y="54">[6, 7, 8]…</text></g>
+<g data-step="6" class="once"><text class="m" x="465" y="54">—</text></g>
+<g class="f1"><circle cx="472" cy="250" r="6"/></g><text class="s" x="484" y="254">núcleo c₁</text>
+<g class="f2"><circle cx="472" cy="272" r="6"/></g><text class="s" x="484" y="276">núcleo c₂</text>
+<circle cx="472" cy="294" r="6" style="fill:var(--sheet);stroke:var(--c1);stroke-width:2.5"/><text class="s" x="484" y="298">borde</text>
+<path class="s4" d="M467 311L477 321M477 311L467 321" style="stroke-width:2.5"/><text class="s" x="484" y="320">ruido</text>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Primer núcleo</b><span class="eq">N_ε(0) = {0, 1, 2}  →  3 ≥ minPts  →  núcleo</span><p>Abre cluster c₁. Vecinos entran a la cola.</p></li>
+<li><b class="t">2 · Expandir</b><span class="eq">N_ε(1) = {0, 1, 2, 3},  N_ε(2) = {0, 1, 2, 3}</span><p>Ambos núcleos. Aparece 3 nuevo: a la cola.</p></li>
+<li><b class="t">3 · Seguir la cadena</b><span class="eq">N_ε(3) = {1, 2, 3, 4}  →  núcleo, encola 4</span><p>Densidad se propaga punto a punto: así sigue formas curvas.</p></li>
+<li><b class="t">4 · Borde</b><span class="eq">N_ε(4) = {3, 4}  →  2 &lt; 3</span><p>No es núcleo pero está en el vecindario de 3: entra a c₁ como borde y no expande. Cola vacía: c₁ = {0…4}.</p></li>
+<li><b class="t">5 · Segundo cluster</b><span class="eq">N_ε(5) = {5, 6, 7, 8}  →  c₂ = {5, 6, 7, 8}</span><p>Todos núcleos (4 vecinos cada uno).</p></li>
+<li><b class="t">6 · Ruido</b><span class="eq">N_ε(9) = {9}  →  etiqueta −1</span><p>Resultado igual a <code>sklearn DBSCAN(eps=1, min_samples=3)</code>: [0,0,0,0,0,1,1,1,1,−1].</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Elegir ε: gráfico de k-distancia</h3>
+<figure class="dgm narrow"><div class="scroll"><svg viewBox="0 0 640 260" role="img" aria-label="Distancias al segundo vecino ordenadas para los diez puntos; el codo indica epsilon.">
+<path class="ln ink" d="M50 20V220H560"/>
+<text class="s end" x="44" y="224">0</text><text class="s end" x="44" y="154">1</text><text class="s end" x="44" y="84">2</text>
+<path class="ln dash" d="M50 150H560" style="stroke:var(--c4)"/><text class="s c4" x="500" y="144">ε = 1</text>
+<polyline class="s1" style="stroke-width:2.5" points="60,179.2 110,175.2 160,175.2 210,163.6 260,162.3 310,162.3 360,160.2 410,157.4 460,124.8 510,40"/>
+<g class="f1"><circle cx="60" cy="179.2" r="4"/><circle cx="110" cy="175.2" r="4"/><circle cx="160" cy="175.2" r="4"/><circle cx="210" cy="163.6" r="4"/><circle cx="260" cy="162.3" r="4"/><circle cx="310" cy="162.3" r="4"/><circle cx="360" cy="160.2" r="4"/><circle cx="410" cy="157.4" r="4"/></g>
+<circle class="f4" cx="460" cy="124.8" r="5"/><circle class="f4" cx="510" cy="40" r="5"/>
+<text class="s" x="380" y="118">pto 4: 1.36 → borde</text><text class="s end" x="500" y="44">pto 9: 2.57 → ruido</text>
+<text class="s" x="60" y="244">puntos ordenados por distancia a su (minPts − 1)-ésimo vecino →</text>
+</svg></div><figcaption>Codo de la curva = ε razonable. Bajo el codo: núcleos. Sobre el codo: bordes o ruido.</figcaption></figure>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Vecindario</dt><dd>N<sub>ε</sub>(p) = {q ∈ X : dist(p, q) ≤ ε}   (incluye p)</dd></div>
+<div class="row"><dt>Núcleo</dt><dd>|N<sub>ε</sub>(p)| ≥ minPts</dd></div>
+<div class="row"><dt>Alcanzable</dt><dd>q alcanzable desde p si existe cadena p = p₁…pₘ = q, cada pᵢ núcleo y pᵢ₊₁ ∈ N<sub>ε</sub>(pᵢ)</dd></div>
+<div class="row"><dt>Cluster</dt><dd>conjunto maximal de puntos densidad-conectados (ambos alcanzables desde un núcleo común)</dd></div>
+<div class="row"><dt>Heurística</dt><dd>minPts ≈ 2·d;   ε = codo de k-distancia con k = minPts − 1</dd></div>
+<div class="row"><dt>HDBSCAN</dt><dd>barre todos los ε, construye jerarquía y elige clusters estables: sin ε, densidades variables</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 290" role="img" aria-label="DBSCAN en lote sobre coordenadas GPS para detectar lugares frecuentes y puntos sin cluster como anomalías.">
+<rect class="lane" x="4" y="6" width="952" height="130" rx="6"/><text class="cap" x="16" y="26">batch nocturno · geoespacial</text>
+<g class="in"><rect x="20" y="44" width="160" height="66" rx="5"/><text class="mid" x="100" y="68">pings GPS</text><text class="s mid" x="100" y="86">(lat, lon) por usuario</text><text class="s mid" x="100" y="100">último mes</text></g>
+<g class="op"><rect x="210" y="44" width="170" height="66" rx="5"/><text class="mid" x="295" y="68">a radianes</text><text class="s mid" x="295" y="86">métrica haversine</text><text class="s mid" x="295" y="100">ε = 100 m / 6 371 km</text></g>
+<g class="hot"><rect x="410" y="44" width="200" height="66" rx="5"/><text class="h mid" x="510" y="68">DBSCAN</text><text class="s mid" x="510" y="86">ball tree · min_samples = 10</text><text class="s mid" x="510" y="100">por usuario, en paralelo</text></g>
+<g class="st"><rect x="640" y="44" width="300" height="66" rx="5"/><text class="mid" x="790" y="68">lugares frecuentes</text><text class="s mid" x="790" y="86">centroide + radio de cada cluster</text><text class="s mid" x="790" y="100">“casa”, “trabajo”, “gimnasio”</text></g>
+<path class="e fw" d="M180 77H206"/><path class="e fw" d="M380 77H406"/><path class="e st" d="M610 77H636"/>
+<rect class="lane" x="4" y="148" width="952" height="136" rx="6"/><text class="cap" x="16" y="168">online · cada evento</text>
+<g class="in"><rect x="20" y="188" width="150" height="56" rx="5"/><text class="mid" x="95" y="212">ping / transacción</text><text class="s mid" x="95" y="230">con ubicación</text></g>
+<g class="hot"><rect x="200" y="188" width="240" height="56" rx="5"/><text class="mid" x="320" y="212">¿dentro de algún lugar?</text><text class="s mid" x="320" y="230">distancia a centroides guardados</text></g>
+<g class="out"><rect x="470" y="188" width="200" height="56" rx="5"/><text class="mid" x="570" y="212">feature: en_lugar_habitual</text><text class="s mid" x="570" y="230">para fraude / recomendación</text></g>
+<g class="dec"><rect x="700" y="188" width="240" height="56" rx="5"/><text class="mid" x="820" y="212">fuera de todos + monto alto</text><text class="s mid" x="820" y="230">→ revisión</text></g>
+<path class="e fw" d="M170 216H196"/><path class="e fw" d="M440 216H466"/><path class="e dec" d="M670 216H696"/>
+<path class="e st" d="M790 110V140H320V184"/>
+</svg></div><figcaption>DBSCAN no tiene <code>predict</code>: lo online usa los clusters resumidos (centroide, radio o núcleos) que deja el lote.</figcaption></figure>
+<dl class="kv">
+<dt>Usos</dt><dd>Lugares frecuentes (GPS), agrupar logs o alertas similares, limpiar outliers antes de entrenar, detectar fraude por anillos densos.</dd>
+<dt>Escala</dt><dd>Millones de puntos 2D: OK con ball tree. Embeddings de 768 dims: índice inútil; reducir con PCA/UMAP o usar HDBSCAN sobre muestra.</dd>
+<dt>Monitorear</dt><dd>Fracción de ruido (−1) y número de clusters por corrida: saltos indican cambio de densidad o de escala de datos.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>Un solo ε para todo: clusters de densidades distintas se funden o se vuelven ruido. Usar HDBSCAN u OPTICS.</li>
+<li>Features sin escalar: ε sólo tiene sentido si todas las dimensiones están en la misma unidad.</li>
+<li>d alto: todas las distancias se parecen; ε deja de discriminar.</li>
+<li>Bordes compartidos entre dos clusters quedan en el primero procesado: resultado depende del orden.</li>
+</ul>

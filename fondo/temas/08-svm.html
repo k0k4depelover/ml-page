@@ -1,0 +1,118 @@
+<p class="lead">SVM busca la frontera con mayor margen. Formulación dual sólo usa productos punto entre muestras. Cambiar producto punto por kernel = frontera no lineal sin construir el espacio alto. Solución final depende sólo de vectores de soporte.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 400" role="img" aria-label="Del problema primal con hinge al dual con matriz de Gram, solver SMO, multiplicadores alfa dispersos, vectores de soporte y predicción.">
+<g class="in"><rect x="20" y="30" width="140" height="56" rx="5"/><text class="mid" x="90" y="54">X (n×d)</text><text class="m mid" x="90" y="74">y ∈ {−1, +1}</text></g>
+<g class="in"><rect x="20" y="110" width="140" height="70" rx="5"/><text class="mid" x="90" y="134">kernel K</text><text class="s mid" x="90" y="152">lineal · polinómico</text><text class="s mid" x="90" y="168">RBF (γ) · C</text></g>
+<g class="op"><rect x="210" y="20" width="330" height="76" rx="5"/><text class="cap" x="225" y="40" style="fill:color-mix(in srgb,var(--paper) 72%,transparent)">primal</text><text class="m mid" x="375" y="62">min ½‖w‖² + C Σᵢ max(0, 1 − yᵢ(w·xᵢ + b))</text><text class="s mid" x="375" y="84">margen ancho + castigo hinge por violaciones</text></g>
+<path class="e nt" d="M375 96V124"/><text class="s" x="385" y="116">Lagrange + KKT</text>
+<g class="op"><rect x="210" y="128" width="330" height="86" rx="5"/><text class="cap" x="225" y="148" style="fill:color-mix(in srgb,var(--paper) 72%,transparent)">dual</text><text class="m mid" x="375" y="172">max Σαᵢ − ½ ΣΣ αᵢαⱼ yᵢyⱼ K(xᵢ, xⱼ)</text><text class="m mid" x="375" y="198">0 ≤ αᵢ ≤ C,   Σ αᵢ yᵢ = 0</text></g>
+<g class="op"><rect x="590" y="128" width="170" height="86" rx="5"/><text class="mid" x="675" y="156">matriz de Gram</text><text class="m mid" x="675" y="178">Kᵢⱼ = K(xᵢ, xⱼ)</text><text class="s mid" x="675" y="198">n×n · O(n²d)</text></g>
+<path class="e fw" d="M160 58H206"/><path class="e fw" d="M160 145H180V240H675V218"/><path class="e fw" d="M590 171H544"/>
+<g class="op"><rect x="210" y="258" width="200" height="60" rx="5"/><text class="mid" x="310" y="282">solver SMO</text><text class="s mid" x="310" y="300">optimiza pares (αᵢ, αⱼ) · O(n²)–O(n³)</text></g>
+<path class="e fw" d="M310 214V254"/>
+<g class="st"><rect x="450" y="258" width="200" height="60" rx="5"/><text class="mid" x="550" y="282">α disperso</text><text class="s mid" x="550" y="300">mayoría αᵢ = 0</text></g>
+<g class="st"><rect x="690" y="258" width="250" height="60" rx="5"/><text class="mid" x="815" y="282">vectores de soporte</text><text class="s mid" x="815" y="300">αᵢ &gt; 0: en el margen o violándolo</text></g>
+<path class="e st" d="M410 288H446"/><path class="e st" d="M650 288H686"/>
+<g class="out"><rect x="450" y="340" width="490" height="50" rx="5"/><text class="m mid" x="695" y="370">f(x) = Σ αᵢ yᵢ K(xᵢ, x) + b  (i ∈ SV)   →   clase = sign f(x)</text></g>
+<path class="e st" d="M815 318V336"/>
+<g class="in"><rect x="20" y="340" width="140" height="50" rx="5"/><text class="mid" x="90" y="370">x nuevo</text></g>
+<path class="e fw" d="M160 365H446"/>
+</svg></div><figcaption>Datos sólo entran vía K. Entrenar cuesta n² en memoria y tiempo; predecir cuesta #SV evaluaciones de kernel.</figcaption></figure>
+
+<h3>Geometría: margen y vectores de soporte</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 380" role="img" aria-label="Ocho puntos separables, hiperplano x1 + x2 = 4, márgenes y cuatro vectores de soporte con alfa 0.5.">
+<rect class="cell" x="30" y="30" width="320" height="320" rx="4"/>
+<path class="soft3" d="M40 160L220 340H340L40 40Z" style="opacity:.5"/>
+<path class="si" d="M40 160L220 340" style="stroke-dasharray:5 4"/><path class="si" d="M40 40L340 340" style="stroke-dasharray:5 4"/>
+<path class="sa" d="M40 100L280 340" style="stroke-width:2.5"/>
+<path class="e nt" d="M220 280L256 244"/><text class="s" x="262" y="262">w</text>
+<path class="s4" d="M130 250L190 190" style="stroke-width:1.5"/><text class="s c4 end" x="126" y="266">margen √2</text>
+<circle class="f1 pt" cx="70" cy="310" r="7"/><circle class="f1 pt" cx="100" cy="310" r="7"/>
+<circle class="f1 pt" cx="100" cy="220" r="9"/><circle class="f1 pt" cx="160" cy="280" r="9"/>
+<circle class="f2 pt" cx="250" cy="130" r="7"/><circle class="f2 pt" cx="280" cy="190" r="7"/>
+<circle class="f2 pt" cx="220" cy="220" r="9"/><circle class="f2 pt" cx="160" cy="160" r="9"/>
+<g class="sa" style="stroke-width:1.5"><circle cx="100" cy="220" r="14"/><circle cx="160" cy="280" r="14"/><circle cx="220" cy="220" r="14"/><circle cx="160" cy="160" r="14"/></g>
+<circle class="f2 pt" cx="190" cy="280" r="7" style="opacity:.6"/><path class="s2" d="M190 280L235 235" style="stroke-dasharray:3 3"/><text class="s c2 end" x="180" y="296">(2.5, 1): ξ = 1.5</text>
+<text class="s" x="34" y="364">x₁ →</text><text class="s end" x="200" y="364">w·x + b =</text><text class="s mid" x="220" y="364">−1</text><text class="s ac mid" x="280" y="364">0</text><text class="s mid" x="340" y="364">+1</text><text class="s" x="34" y="24">x₂</text>
+
+<g transform="translate(400 30)">
+<text class="h" x="0" y="0">Solución (verificada con sklearn, C → ∞)</text>
+<text class="m" x="0" y="34">w = (1, 1),  b = −4</text>
+<text class="s" x="0" y="58">4 vectores de soporte (anillo azul), α = 0.5 cada uno:</text>
+<text class="m" x="0" y="88">w = Σ αᵢyᵢxᵢ = 0.5[(3,2) + (2,3) − (1,2) − (2,1)] = (1, 1)</text>
+<text class="s" x="0" y="112">Con SVs alineados, α no es único (sklearn da 0.68 / 0.32); w y b sí.</text>
+<text class="h" x="0" y="150">Margen funcional yᵢ·f(xᵢ)</text>
+<text class="s" x="0" y="174">SVs: exactamente 1 → hinge 0, sobre las líneas punteadas.</text>
+<text class="s" x="0" y="194">(0.5, 0.5) y (3.5, 3.5): 3 → hinge 0, α = 0. Moverlos no cambia nada.</text>
+<text class="s c2" x="0" y="214">(2.5, 1) clase +: f = −0.5 → hinge = 1 − (−0.5) = 1.5.</text>
+<text class="s" x="0" y="234">Con margen suave paga C·1.5 en vez de forzar otra frontera.</text>
+<text class="h" x="0" y="272">Rol de C</text>
+<text class="s" x="0" y="296">C grande: castiga violaciones → margen angosto, más sobreajuste.</text>
+<text class="s" x="0" y="316">C chico: tolera violaciones → margen ancho, más SVs, más sesgo.</text>
+</g>
+</svg></div><figcaption>Sólo los cuatro puntos con anillo definen la frontera. Borrar los otros cuatro deja el mismo modelo.</figcaption></figure>
+
+<h3>Paso a paso: kernel trick</h3>
+<p>Kernel polinómico grado 2 sin término constante: K(x, z) = (x·z)². Dos puntos x = (1, 2), z = (3, 1).</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 580 330" role="img" aria-label="Comparación entre mapear explícitamente a tres dimensiones y usar el kernel directamente.">
+<g class="in"><rect x="20" y="30" width="120" height="44" rx="5"/><text class="m mid" x="80" y="58">x = (1, 2)</text></g>
+<g class="in"><rect x="20" y="110" width="120" height="44" rx="5"/><text class="m mid" x="80" y="138">z = (3, 1)</text></g>
+<text class="cap" x="200" y="20">ruta explícita · O(d²)</text>
+<g data-step="1"><path class="e fw" d="M140 52H196"/><g class="op"><rect x="200" y="30" width="200" height="44" rx="5"/><text class="m mid" x="300" y="58">φ(x) = (1, 2.828, 4)</text></g></g>
+<g data-step="2"><path class="e fw" d="M140 132H196"/><g class="op"><rect x="200" y="110" width="200" height="44" rx="5"/><text class="m mid" x="300" y="138">φ(z) = (9, 4.243, 1)</text></g></g>
+<g data-step="3"><path class="e fw" d="M400 52H430V80H446"/><path class="e fw" d="M400 132H430V104H446"/><g class="out"><rect x="450" y="70" width="110" height="44" rx="5"/><text class="m mid" x="505" y="98">⟨φ, φ⟩ = 25</text></g><text class="s mid" x="505" y="130">9 + 12 + 4</text></g>
+<text class="cap" x="200" y="200">ruta kernel · O(d)</text>
+<g data-step="4"><path class="e st" d="M80 154V230H196"/><g class="op"><rect x="200" y="208" width="200" height="44" rx="5"/><text class="m mid" x="300" y="236">(x·z)² = (3 + 2)²</text></g><path class="e st" d="M400 230H446"/><g class="out"><rect x="450" y="208" width="110" height="44" rx="5"/><text class="m mid" x="505" y="236">25</text></g></g>
+<g data-step="5"><text class="sm" x="20" y="290">RBF: K = exp(−γ‖x − z‖²) = exp(−0.5·5) = 0.082</text><text class="s" x="20" y="312">φ de RBF tiene dimensión infinita; el kernel cuesta lo mismo.</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Mapear x</b><span class="eq">φ(x) = (x₁², √2·x₁x₂, x₂²) = (1, 2√2, 4)</span><p>Espacio de todos los productos de grado 2. Ahí una frontera lineal es una cónica en el plano original.</p></li>
+<li><b class="t">2 · Mapear z</b><span class="eq">φ(z) = (9, √2·3, 1) = (9, 4.243, 1)</span></li>
+<li><b class="t">3 · Producto en espacio alto</b><span class="eq">⟨φ(x), φ(z)⟩ = 1·9 + 2√2·3√2 + 4·1 = 9 + 12 + 4 = 25</span></li>
+<li><b class="t">4 · Mismo número sin φ</b><span class="eq">(x·z)² = (1·3 + 2·1)² = 5² = 25</span><p>Dual sólo pide productos punto: kernel los da directo.</p></li>
+<li><b class="t">5 · Escala</b><span class="eq">grado 3, d = 100  ⇒  dim φ = C(102, 3) = 171 700</span><p>Kernel sigue costando un producto punto de 100 entradas. RBF: dimensión infinita, costo O(d).</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Primal suave</dt><dd>min<sub>w,b,ξ</sub> ½‖w‖² + C Σ ξ<sub>i</sub>   s.a.  y<sub>i</sub>(w·x<sub>i</sub> + b) ≥ 1 − ξ<sub>i</sub>,  ξ<sub>i</sub> ≥ 0</dd></div>
+<div class="row"><dt>Forma hinge</dt><dd>min (1/2C)‖w‖² + Σ max(0, 1 − y<sub>i</sub> f(x<sub>i</sub>))   (= regularización L2 + hinge)</dd></div>
+<div class="row"><dt>Stationarity</dt><dd>∂/∂w = 0 ⇒ w = Σ α<sub>i</sub> y<sub>i</sub> x<sub>i</sub>;   ∂/∂b = 0 ⇒ Σ α<sub>i</sub> y<sub>i</sub> = 0</dd></div>
+<div class="row"><dt>KKT</dt><dd>α<sub>i</sub> = 0 ⇒ y<sub>i</sub>f ≥ 1;   0 &lt; α<sub>i</sub> &lt; C ⇒ y<sub>i</sub>f = 1;   α<sub>i</sub> = C ⇒ y<sub>i</sub>f ≤ 1</dd></div>
+<div class="row"><dt>Sesgo</dt><dd>b = y<sub>k</sub> − Σ<sub>i</sub> α<sub>i</sub> y<sub>i</sub> K(x<sub>i</sub>, x<sub>k</sub>)   para cualquier SV con 0 &lt; α<sub>k</sub> &lt; C</dd></div>
+<div class="row"><dt>Kernels</dt><dd>lineal x·z;   polinómico (γ x·z + r)<sup>p</sup>;   RBF exp(−γ‖x − z‖²)</dd></div>
+<div class="row"><dt>Probabilidad (Platt)</dt><dd>P(y = 1 | x) = σ(A·f(x) + B),   A, B ajustados con CV</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 300" role="img" aria-label="SVM lineal para clasificación de texto con TF-IDF y SVM con kernel que guarda vectores de soporte.">
+<rect class="lane" x="4" y="6" width="952" height="140" rx="6"/><text class="cap" x="16" y="26">SVM lineal · texto (spam, temas, tickets) · d ~ 10⁵ disperso</text>
+<g class="in"><rect x="20" y="44" width="120" height="60" rx="5"/><text class="mid" x="80" y="68">documento</text><text class="s mid" x="80" y="86">texto crudo</text></g>
+<g class="op"><rect x="160" y="44" width="170" height="60" rx="5"/><text class="mid" x="245" y="68">TF-IDF</text><text class="s mid" x="245" y="86">vocabulario fijo (artefacto)</text></g>
+<g class="hot"><rect x="350" y="44" width="170" height="60" rx="5"/><text class="m mid" x="435" y="70">f = w·x + b</text><text class="s mid" x="435" y="88">O(nnz(x)) · µs</text></g>
+<g class="op"><rect x="540" y="44" width="170" height="60" rx="5"/><text class="mid" x="625" y="68">Platt σ(Af + B)</text><text class="s mid" x="625" y="86">score → probabilidad</text></g>
+<g class="dec"><rect x="730" y="44" width="210" height="60" rx="5"/><text class="mid" x="835" y="68">p ≥ τ → etiqueta</text><text class="s mid" x="835" y="86">explicable: top pesos wⱼ</text></g>
+<path class="e fw" d="M140 74H156"/><path class="e fw" d="M330 74H346"/><path class="e fw" d="M520 74H536"/><path class="e dec" d="M710 74H726"/>
+<text class="s" x="160" y="128">Entrena en segundos con millones de documentos (LinearSVC / SGDClassifier(loss="hinge")).</text>
+<rect class="lane" x="4" y="158" width="952" height="136" rx="6"/><text class="cap" x="16" y="178">SVM con kernel · n chico, señal no lineal (bioinformática, sensores, one-class para anomalías)</text>
+<g class="st"><rect x="20" y="196" width="220" height="60" rx="5"/><text class="mid" x="130" y="220">artefacto = SVs + α + b + γ</text><text class="s mid" x="130" y="238">crece con #SV (puede ser ~n)</text></g>
+<g class="in"><rect x="270" y="196" width="120" height="60" rx="5"/><text class="mid" x="330" y="220">x nuevo</text><text class="s mid" x="330" y="238">escalado igual</text></g>
+<g class="hot"><rect x="410" y="196" width="250" height="60" rx="5"/><text class="m mid" x="535" y="220">Σ αᵢyᵢ K(xᵢ, x) + b</text><text class="s mid" x="535" y="238">O(#SV · d) por predicción</text></g>
+<g class="out"><rect x="680" y="196" width="260" height="60" rx="5"/><text class="mid" x="810" y="220">clase / anomalía</text><text class="s mid" x="810" y="238">10⁴ SV × 100 d = 10⁶ ops ≈ ms</text></g>
+<path class="e st" d="M130 256V280H440V260"/><path class="e fw" d="M390 226H406"/><path class="e fw" d="M660 226H676"/>
+</svg></div><figcaption>Lineal escala a millones; kernel no pasa de ~10⁵ muestras (matriz n×n). Para más datos: features aleatorias de Fourier + SVM lineal.</figcaption></figure>
+<dl class="kv">
+<dt>Escalar</dt><dd>Obligatorio: RBF usa distancias. Feature con rango 1000 domina a una con rango 1.</dd>
+<dt>Tuning</dt><dd>Grid logarítmico en C y γ (10⁻³…10³) con CV. γ alto = cada SV influye sólo cerca: sobreajuste.</dd>
+<dt>Monitorear</dt><dd>Fracción de predicciones con |f| &lt; 1 (dentro del margen): si sube, datos nuevos caen en zona dudosa.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li><code>decision_function</code> no es probabilidad. <code>probability=True</code> ejecuta CV interna extra (lento) y puede contradecir a predict.</li>
+<li>Kernel RBF con n = 10⁶: Gram de 10¹² entradas. Imposible; usar lineal, aproximaciones Nyström o boosting.</li>
+<li>Muchos SVs (≈ n) = modelo no aprendió estructura; revisar C, γ y escalado.</li>
+<li>Multiclase: sklearn SVC hace uno-contra-uno (K(K−1)/2 modelos); LinearSVC uno-contra-resto.</li>
+</ul>

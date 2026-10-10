@@ -1,0 +1,109 @@
+<p class="lead">PCA rota los ejes hacia las direcciones de mayor varianza y descarta las últimas. Cálculo real: centrar y una SVD. Nada de iteraciones ni gradiente; resultado exacto y determinista (salvo el signo).</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 400" role="img" aria-label="Datos, centrado, descomposición SVD en U, Sigma y V, varianza explicada, elección de k, proyección y reconstrucción.">
+<g class="in"><rect x="20" y="40" width="130" height="60" rx="5"/><text class="mid" x="85" y="64">X</text><text class="m mid" x="85" y="86">n × d</text></g>
+<g class="op"><rect x="190" y="40" width="170" height="60" rx="5"/><text class="m mid" x="275" y="64">μ = (1/n) Σ xᵢ</text><text class="m mid" x="275" y="86">Xc = X − μ</text></g>
+<g class="op"><rect x="400" y="30" width="200" height="80" rx="5"/><text class="mid" x="500" y="54">SVD</text><text class="m mid" x="500" y="78">Xc = U Σ Vᵀ</text><text class="s mid" x="500" y="98">O(n·d·min(n, d))</text></g>
+<path class="e fw" d="M150 70H186"/><path class="e fw" d="M360 70H396"/>
+<g class="st"><rect x="650" y="20" width="290" height="50" rx="5"/><text class="m mid" x="795" y="42">V: d × d</text><text class="s mid" x="795" y="60">columnas = direcciones principales</text></g>
+<g class="st"><rect x="650" y="90" width="290" height="50" rx="5"/><text class="m mid" x="795" y="112">λⱼ = σⱼ² / (n − 1)</text><text class="s mid" x="795" y="130">varianza en cada dirección, ordenada</text></g>
+<path class="e st" d="M600 55H646"/><path class="e st" d="M600 90H625V115H646"/>
+<g class="dec"><rect x="650" y="180" width="290" height="60" rx="5"/><text class="mid" x="795" y="204">elegir k</text><text class="m mid" x="795" y="226">Σⱼ≤ₖ λⱼ / Σ λⱼ ≥ 0.95</text></g>
+<path class="e dec" d="M795 140V176"/>
+<g class="op"><rect x="400" y="180" width="200" height="60" rx="5"/><text class="m mid" x="500" y="204">Z = Xc Vₖ</text><text class="s mid" x="500" y="224">(n×d)(d×k) = n × k</text></g>
+<path class="e dec" d="M650 210H604"/>
+<g class="out"><rect x="400" y="290" width="200" height="60" rx="5"/><text class="mid" x="500" y="314">features comprimidas</text><text class="m mid" x="500" y="336">Z: n × k</text></g>
+<path class="e fw" d="M500 240V286"/>
+<g class="op"><rect x="650" y="290" width="290" height="80" rx="5"/><text class="m mid" x="795" y="314">X̂ = Z Vₖᵀ + μ</text><text class="m mid" x="795" y="338">‖Xc − X̂c‖² = Σⱼ&gt;ₖ σⱼ²</text><text class="s mid" x="795" y="358">error = varianza descartada</text></g>
+<path class="e fw" d="M600 320H646"/>
+<text class="h" x="20" y="180">Ruta alternativa</text>
+<text class="m" x="20" y="206">C = XcᵀXc / (n − 1)</text>
+<text class="s" x="20" y="226">eig(C): O(n·d² + d³). Mismos V y λ.</text>
+<text class="s" x="20" y="244">SVD evita formar C: más estable</text>
+<text class="s" x="20" y="262">(cuadrar duplica el número de condición).</text>
+<text class="h" x="20" y="306">d grande, k chico</text>
+<text class="s" x="20" y="328">SVD aleatorizada: O(n·d·k).</text>
+<text class="s" x="20" y="346">IncrementalPCA: por lotes,</text>
+<text class="s" x="20" y="364">datos que no caben en RAM.</text>
+</svg></div><figcaption>Verde: lo que se guarda tras el fit (μ, Vₖ, λ). Ámbar: decisión de cuántos componentes mantener.</figcaption></figure>
+
+<h3>Paso a paso: 2D → 1D</h3>
+<p>Cinco puntos: (2, 1), (3, 4), (4, 3), (5, 6), (6, 5).</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 580 360" role="img" aria-label="Puntos, media, ejes principales, proyección sobre la primera componente y coordenadas resultantes.">
+<path class="ln ink" d="M40 330H310M40 330V15"/>
+<text class="s mid" x="85" y="346">2</text><text class="s mid" x="175" y="346">4</text><text class="s mid" x="265" y="346">6</text><text class="s end" x="34" y="244">2</text><text class="s end" x="34" y="154">4</text><text class="s end" x="34" y="64">6</text>
+<g data-step="4-6"><path class="ln dash" d="M85 285L79.2 280.5M130 150L162.1 175.3M175 195L157.5 181.2M220 60L240.4 76.1M265 105L235.8 82"/>
+<g class="fa"><circle cx="79.2" cy="280.5" r="4"/><circle cx="162.1" cy="175.3" r="4"/><circle cx="157.5" cy="181.2" r="4"/><circle cx="240.4" cy="76.1" r="4"/><circle cx="235.8" cy="82" r="4"/></g></g>
+<g class="f1"><circle class="pt" cx="85" cy="285" r="7"/><circle class="pt" cx="130" cy="150" r="7"/><circle class="pt" cx="175" cy="195" r="7"/><circle class="pt" cx="220" cy="60" r="7"/><circle class="pt" cx="265" cy="105" r="7"/></g>
+<g data-step="1"><path class="sa" d="M168 152L182 166M182 152L168 166" style="stroke-width:2.5"/><text class="sm ac" x="186" y="148">μ = (4, 3.8)</text></g>
+<g data-step="2"><path class="ln dash ink" d="M40 159H310M175 15V330"/><text class="s" x="182" y="26">Xc: origen en μ</text></g>
+<g data-step="3-6"><path class="ln" d="M58 307.4L264.2 45.9" style="stroke:var(--c1);stroke-width:1.5"/><path class="e fw" d="M175 159L230.7 88.3" style="stroke-width:3"/><path class="e st" d="M175 159L192.7 173" style="stroke-width:3"/>
+<text class="sm c1" x="236" y="96">v₁</text><text class="sm c3" x="196" y="190">v₂</text></g>
+<g data-step="4-6"><path class="ln ink" d="M340 300H560"/><text class="s" x="340" y="276">z = Xc · v₁</text>
+<g class="fa"><circle cx="357.7" cy="300" r="5"/><circle cx="451.1" cy="300" r="5"/><circle cx="446" cy="300" r="5"/><circle cx="539.3" cy="300" r="5"/><circle cx="534" cy="300" r="5"/></g>
+<text class="s mid" x="357.7" y="320">−3.44</text><text class="s mid" x="448" y="320">−0.6</text><text class="s mid" x="537" y="320">2.3</text></g>
+<g data-step="5"><text class="sm" x="340" y="60">x̂ = z·v₁ + μ</text><text class="s" x="340" y="82">(3, 4) → (3.71, 3.44): error 0.83</text><text class="sm ac" x="340" y="110">Σ‖x − x̂‖² = 2.116 = σ₂²</text></g>
+<g data-step="6"><rect class="f1" x="340" y="160" width="201" height="22" rx="3"/><rect class="f4" x="541" y="160" width="19" height="22" rx="3"/><text class="s" x="340" y="200">PC1 91.5 %</text><text class="s end" x="560" y="200">PC2 8.5 %</text><text class="s" x="340" y="148">varianza explicada</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Media</b><span class="eq">μ = (20/5, 19/5) = (4, 3.8)</span><p>Se guarda: en producción cada x nuevo se centra con esta μ de train.</p></li>
+<li><b class="t">2 · Centrar</b><span class="eq">Xc = (−2, −2.8), (−1, 0.2), (0, −0.8), (1, 2.2), (2, 1.2)</span><p>Sin centrar, la primera dirección apunta hacia la media, no hacia la dispersión.</p></li>
+<li><b class="t">3 · SVD</b><span class="eq">σ = (4.763, 1.455)</span><span class="eq">v₁ = (0.619, 0.785),  v₂ = (0.785, −0.619)</span><p>Mismos vectores que eig de C = [[2.5, 2.5], [2.5, 3.7]]. v₁ ⟂ v₂.</p></li>
+<li><b class="t">4 · Proyectar</b><span class="eq">z = Xc v₁ = (−3.44, −0.46, −0.63, 2.35, 2.18)</span><p>Cada punto = un número. Proyección ortogonal: línea punteada ⟂ v₁.</p></li>
+<li><b class="t">5 · Reconstruir</b><span class="eq">x̂ = z v₁ᵀ + μ,   Σ‖x − x̂‖² = 2.116 = σ₂²</span><p>Error total = varianza tirada. Base de detección de anomalías: error alto = punto atípico.</p></li>
+<li><b class="t">6 · Varianza explicada</b><span class="eq">λ = σ² / 4 = (5.671, 0.529)  →  (91.5 %, 8.5 %)</span><p>Un eje conserva 91.5 % de la varianza. Suma de λ = traza de C = 2.5 + 3.7.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Elegir k: varianza acumulada</h3>
+<figure class="dgm narrow"><div class="scroll"><svg viewBox="0 0 680 260" role="img" aria-label="Varianza explicada acumulada del dataset digits de sklearn, 64 dimensiones: 29 componentes alcanzan 95 por ciento.">
+<path class="ln ink" d="M60 20V220H640"/><path class="ln" d="M60 125H640M60 30H640"/>
+<text class="s end" x="54" y="224">0</text><text class="s end" x="54" y="129">50 %</text><text class="s end" x="54" y="34">100 %</text>
+<text class="s mid" x="60" y="238">0</text><text class="s mid" x="150.6" y="238">10</text><text class="s mid" x="241.3" y="238">20</text><text class="s mid" x="331.9" y="238">30</text><text class="s mid" x="422.5" y="238">40</text><text class="s mid" x="640" y="238">64</text><text class="s end" x="640" y="254">k componentes</text>
+<path class="ln dash" d="M60 39.5H640" style="stroke:var(--c4)"/><text class="s c4" x="470" y="56">95 %</text>
+<polyline class="s1" style="stroke-width:2.5" points="60,220 69.1,191.7 78.1,165.9 87.2,143.4 105.3,116.5 150.6,79.8 195.9,61.4 241.3,50.1 331.9,37.8 422.5,32.3 640,30"/>
+<path class="ln dash" d="M322.8 39.5V220" style="stroke:var(--c4)"/><circle class="f4" cx="322.8" cy="39.5" r="5"/>
+<text class="s c4" x="330" y="96">k = 29 → 95 %</text><text class="s" x="330" y="114">13 → 80 % · 21 → 90 % · 41 → 99 %</text>
+</svg></div><figcaption>sklearn <code>load_digits</code> (1797 × 64). <code>PCA(n_components=0.95)</code> elige k = 29 automáticamente: 55 % menos columnas.</figcaption></figure>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Objetivo</dt><dd>v₁ = argmax<sub>‖v‖=1</sub> Var(Xc v) = argmax vᵀCv   ⇒   Cv = λv</dd></div>
+<div class="row"><dt>SVD ↔ covarianza</dt><dd>C = XcᵀXc/(n−1) = V (Σ²/(n−1)) Vᵀ   ⇒   λⱼ = σⱼ²/(n−1)</dd></div>
+<div class="row"><dt>Proyección</dt><dd>Z = Xc Vₖ = Uₖ Σₖ</dd></div>
+<div class="row"><dt>Reconstrucción</dt><dd>X̂ = Z Vₖᵀ + μ;   ‖Xc − ZVₖᵀ‖<sub>F</sub>² = Σ<sub>j&gt;k</sub> σⱼ²   (óptimo de rango k, Eckart–Young)</dd></div>
+<div class="row"><dt>Varianza explicada</dt><dd>r<sub>k</sub> = Σ<sub>j≤k</sub> λⱼ / Σ<sub>j</sub> λⱼ</dd></div>
+<div class="row"><dt>Whitening</dt><dd>Z<sub>w</sub> = Xc Vₖ diag(λ)<sup>−1/2</sup>   (varianza 1 en cada componente)</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 300" role="img" aria-label="PCA ajustado offline, artefacto con media y componentes, transformación online antes del modelo o índice vectorial, y error de reconstrucción como alarma.">
+<rect class="lane" x="4" y="6" width="952" height="120" rx="6"/><text class="cap" x="16" y="26">offline</text>
+<g class="in"><rect x="20" y="42" width="160" height="60" rx="5"/><text class="mid" x="100" y="66">train</text><text class="s mid" x="100" y="84">sólo train, nunca test</text></g>
+<g class="op"><rect x="210" y="42" width="170" height="60" rx="5"/><text class="mid" x="295" y="66">StandardScaler</text><text class="s mid" x="295" y="84">unidades comparables</text></g>
+<g class="hot"><rect x="410" y="42" width="200" height="60" rx="5"/><text class="h mid" x="510" y="66">PCA.fit</text><text class="s mid" x="510" y="84">k por varianza o por CV</text></g>
+<g class="st"><rect x="640" y="42" width="300" height="60" rx="5"/><text class="mid" x="790" y="66">artefacto: μ, σ escala, Vₖ (d×k)</text><text class="s mid" x="790" y="84">d = 768, k = 128 → 98 304 floats ≈ 400 KB</text></g>
+<path class="e fw" d="M180 72H206"/><path class="e fw" d="M380 72H406"/><path class="e st" d="M610 72H636"/>
+<rect class="lane" x="4" y="138" width="952" height="156" rx="6"/><text class="cap" x="16" y="158">online</text>
+<g class="in"><rect x="20" y="176" width="140" height="56" rx="5"/><text class="mid" x="90" y="200">x nuevo</text><text class="s mid" x="90" y="218">d dims (p. ej. embedding)</text></g>
+<g class="hot"><rect x="190" y="176" width="200" height="56" rx="5"/><text class="m mid" x="290" y="200">z = (x − μ) Vₖ</text><text class="s mid" x="290" y="218">un matmul: O(d·k)</text></g>
+<g class="out"><rect x="420" y="168" width="230" height="40" rx="5"/><text class="mid" x="535" y="193">modelo / índice ANN con k dims</text></g>
+<g class="dec"><rect x="420" y="220" width="230" height="56" rx="5"/><text class="m mid" x="535" y="244">‖x − x̂‖² &gt; τ ?</text><text class="s mid" x="535" y="262">anomalía / drift</text></g>
+<g class="op"><rect x="680" y="176" width="260" height="90" rx="5"/><text class="mid" x="810" y="200">beneficio</text><text class="s mid" x="810" y="220">índice vectorial 6× más chico</text><text class="s mid" x="810" y="238">búsqueda más rápida, menos ruido</text><text class="s mid" x="810" y="256">modelo aguas abajo con menos features</text></g>
+<path class="e fw" d="M160 204H186"/><path class="e fw" d="M390 196H416"/><path class="e dec" d="M390 220H405V248H416"/>
+<path class="e st" d="M790 102V130H290V172"/>
+</svg></div><figcaption>Error de reconstrucción en producción es un detector gratis: datos que no se parecen a train se reconstruyen mal.</figcaption></figure>
+<dl class="kv">
+<dt>Uso típico</dt><dd>Comprimir embeddings antes de indexar, quitar colinealidad antes de regresión, visualizar (k = 2), detección de anomalías en sensores.</dd>
+<dt>Monitorear</dt><dd>Error de reconstrucción medio y percentil 99 por día; varianza de cada z contra la de train.</dd>
+<dt>Re-entrenar</dt><dd>Si cambia PCA cambia el espacio z: hay que re-entrenar o re-indexar todo lo que consume z. Versionar juntos.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>Sin escalar: una feature en metros y otra en milímetros; la de milímetros domina PC1 por unidades, no por información.</li>
+<li>Signo arbitrario: v y −v son igual de válidos. Re-entrenar puede invertir ejes y romper modelos aguas abajo.</li>
+<li>Fit con todo el dataset antes del split = fuga. Va dentro de <code>Pipeline</code>.</li>
+<li>Máxima varianza ≠ máxima información para predecir: la señal útil puede vivir en un componente de poca varianza.</li>
+</ul>

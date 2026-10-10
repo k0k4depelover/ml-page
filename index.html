@@ -2,278 +2,11 @@
 <title>Cuaderno de ML</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;600&family=STIX+Two+Text:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-<style>
-/* Layout: índice fijo a la izquierda + columna de lectura; cada ficha es una lámina de laboratorio:
-   figura animada arriba, teoría en dos columnas, fórmulas, diagrama de flujo, pasos y código. */
-:root {
-  --paper: #edf0f3;
-  --sheet: #f7f8fa;
-  --fig: #e4e9ef;
-  --ink: #131a25;
-  --ink-2: #4b5667;
-  --ink-3: #7a8596;
-  --rule: #c8d0da;
-  --rule-2: #dbe1e8;
-  --accent: #2346d8;
-  --accent-ink: #ffffff;
-  --c1: #2f5bea;
-  --c2: #e0532f;
-  --c3: #0e8f80;
-  --c4: #c68a10;
-  --code-bg: #121924;
-  --code-ink: #dbe3ee;
-  --code-dim: #7d8aa0;
-  --code-kw: #8fb0ff;
-  --code-str: #9ad69a;
-  --code-num: #f0b46a;
-  --code-fn: #ffd27a;
-  --code-type: #74d4cf;
-  --f-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
-  --f-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
-  --f-math: "STIX Two Text", "Cambria Math", "Times New Roman", serif;
-  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --step--1: 0.84rem;
-  --step-0: 1.05rem;
-  --step-1: 1.25rem;
-  --step-2: 1.6rem;
-  --step-3: clamp(1.9rem, 1.4rem + 1.8vw, 2.6rem);
-  --step-4: clamp(2.8rem, 1.6rem + 6vw, 6rem);
-  --radius: 6px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #0e131a; --sheet: #131a23; --fig: #18212c; --ink: #e4e9f0; --ink-2: #a3aebd; --ink-3: #6f7b8c;
-    --rule: #2b3543; --rule-2: #222b37; --accent: #8ba4ff; --accent-ink: #0e131a;
-    --c1: #6f90ff; --c2: #ff7b5c; --c3: #2fc3ae; --c4: #e8b545;
-    --code-bg: #0a0e14; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --paper: #0e131a; --sheet: #131a23; --fig: #18212c; --ink: #e4e9f0; --ink-2: #a3aebd; --ink-3: #6f7b8c;
-  --rule: #2b3543; --rule-2: #222b37; --accent: #8ba4ff; --accent-ink: #0e131a;
-  --c1: #6f90ff; --c2: #ff7b5c; --c3: #2fc3ae; --c4: #e8b545;
-  --code-bg: #0a0e14; color-scheme: dark;
-}
-
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 1rem; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--f-body);
-  font-size: var(--step-0);
-  line-height: 1.6;
-  font-optical-sizing: auto;
-  -webkit-font-smoothing: antialiased;
-}
-a { color: var(--accent); text-underline-offset: 3px; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
-code { font-family: var(--f-mono); font-size: 0.86em; background: var(--fig); padding: 0.05em 0.35em; border-radius: 3px; }
-i, .m i { font-family: var(--f-math); }
-
-.shell {
-  display: grid;
-  grid-template-columns: 1fr;
-  max-width: 1320px;
-  margin: 0 auto;
-  padding-inline: 16px;
-  gap: 2.5rem;
-}
-@media (min-width: 1100px) {
-  .shell { grid-template-columns: 236px minmax(0, 1fr); padding-inline: 28px; gap: 3.5rem; }
-}
-
-/* ---------- índice ---------- */
-.index { display: none; }
-@media (min-width: 1100px) {
-  .index {
-    display: block;
-    position: sticky;
-    top: env(safe-area-inset-top, 0px);
-    align-self: start;
-    max-height: 100vh;
-    overflow-y: auto;
-    padding-block: 2rem;
-    scrollbar-width: thin;
-  }
-}
-.index .brand { font-family: var(--f-display); font-weight: 700; font-size: 1.15rem; letter-spacing: -0.01em; margin: 0 0 1.25rem; }
-.index .brand a { color: var(--ink); text-decoration: none; }
-.index h3 { font-family: var(--f-display); font-size: 0.8rem; font-weight: 600; color: var(--ink-3); margin: 1.1rem 0 0.3rem; letter-spacing: 0.02em; }
-.index ul { list-style: none; margin: 0; padding: 0; }
-.index li a {
-  display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline;
-  padding: 0.18rem 0.5rem; margin-left: -0.5rem; border-radius: 4px;
-  font-family: var(--f-display); font-size: 0.9rem; line-height: 1.3; color: var(--ink-2); text-decoration: none;
-}
-.index li a:hover { background: var(--fig); color: var(--ink); }
-.index li a.active { color: var(--ink); background: var(--fig); box-shadow: inset 2px 0 0 var(--accent); }
-.index .tick { font-size: 0.75rem; color: var(--c3); flex: none; }
-.index .theme { margin-top: 1.5rem; }
-
-.mobile-nav { display: block; padding-block: 0.75rem; border-bottom: 1px solid var(--rule); }
-@media (min-width: 1100px) { .mobile-nav { display: none; } }
-.mobile-nav label { font-family: var(--f-display); font-size: 0.9rem; color: var(--ink-2); display: flex; gap: 0.6rem; align-items: center; }
-.mobile-nav select { flex: 1; min-width: 0; font: inherit; color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 0.35rem 0.5rem; }
-
-/* ---------- hero ---------- */
-.hero {
-  display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: center;
-  padding-block: 2.5rem 2rem; border-bottom: 1px solid var(--rule);
-}
-@media (min-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); padding-block: 3.5rem 3rem; } }
-.hero h1 {
-  font-family: var(--f-display); font-size: var(--step-4); font-weight: 800; line-height: 0.92;
-  letter-spacing: -0.035em; margin: 0 0 1.25rem; text-wrap: balance;
-  font-variation-settings: "opsz" 96;
-}
-.hero h1 .thin { font-weight: 300; color: var(--ink-2); display: block; font-size: 0.42em; letter-spacing: -0.015em; line-height: 1.1; margin-top: 0.35em; }
-.hero .lede { font-size: var(--step-1); line-height: 1.5; color: var(--ink-2); max-width: 34ch; margin: 0 0 1.75rem; }
-.today {
-  display: grid; gap: 0.35rem; padding: 1rem 1.1rem; border: 1px solid var(--rule); border-radius: var(--radius);
-  background: var(--sheet); max-width: 30rem;
-}
-.today .lbl { font-family: var(--f-display); font-size: 0.85rem; color: var(--ink-3); }
-.today a.pick { font-family: var(--f-display); font-size: var(--step-2); font-weight: 650; line-height: 1.15; color: var(--ink); text-decoration: none; letter-spacing: -0.01em; }
-.today a.pick:hover { color: var(--accent); }
-.today .progress { display: flex; align-items: center; gap: 0.75rem; font-family: var(--f-display); font-size: 0.85rem; color: var(--ink-2); margin-top: 0.4rem; }
-.today .bar { flex: 1; height: 6px; background: var(--rule-2); border-radius: 3px; overflow: hidden; }
-.today .bar span { display: block; height: 100%; background: var(--c3); width: 0; transition: width 0.4s; }
-.hero-fig { position: relative; margin: 0; }
-.hero-fig .stage3d { aspect-ratio: 4 / 3; width: 100%; max-width: 100%; border-radius: var(--radius); cursor: grab; touch-action: pan-y; }
-.hero-fig .stage3d:active { cursor: grabbing; }
-.hero-fig figcaption { font-family: var(--f-display); font-size: var(--step--1); color: var(--ink-3); margin-top: 0.4rem; }
-
-/* ---------- ficha ---------- */
-main { min-width: 0; padding-bottom: 5rem; }
-.fam-head {
-  font-family: var(--f-display); font-size: var(--step-1); font-weight: 600; color: var(--ink-3);
-  margin: 4rem 0 0; padding-top: 0.75rem; border-top: 3px solid var(--ink); letter-spacing: -0.005em;
-}
-.algo { padding-block: 2.5rem 1rem; border-bottom: 1px solid var(--rule); scroll-margin-top: 0.5rem; }
-.algo > header { display: grid; gap: 0.5rem; margin-bottom: 1.5rem; }
-.algo h2 {
-  font-family: var(--f-display); font-size: var(--step-3); font-weight: 750; line-height: 1.05;
-  letter-spacing: -0.025em; margin: 0; text-wrap: balance;
-}
-.algo .tagline { font-size: var(--step-1); line-height: 1.5; color: var(--ink-2); margin: 0; max-width: 62ch; }
-
-figure.anim { margin: 0 0 2rem; background: var(--fig); border-radius: var(--radius); overflow: hidden; }
-figure.anim canvas, figure.anim .stage3d { display: block; width: 100%; max-width: 100%; }
-.anim-bar {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1rem;
-  padding: 0.6rem 0.8rem; border-top: 1px solid var(--rule); background: var(--sheet);
-  font-family: var(--f-display); font-size: 0.88rem;
-}
-.btn {
-  font-family: var(--f-display); font-size: 0.85rem; font-weight: 600; color: var(--ink);
-  background: transparent; border: 1px solid var(--rule); border-radius: 4px; padding: 0.3rem 0.7rem; cursor: pointer;
-}
-.btn:hover { border-color: var(--ink-3); }
-.btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.ctl { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--ink-2); }
-.ctl input[type="range"] { width: 120px; accent-color: var(--accent); }
-.ctl output { font-variant-numeric: tabular-nums; min-width: 2.6em; color: var(--ink); font-weight: 600; }
-.readout { margin-left: auto; color: var(--ink-2); font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; }
-.readout b { color: var(--ink); font-weight: 600; }
-
-.algo h3 { font-family: var(--f-display); font-size: 1.05rem; font-weight: 650; margin: 0 0 0.6rem; letter-spacing: -0.005em; }
-.cols { display: grid; grid-template-columns: 1fr; gap: 1.5rem 2.5rem; margin-bottom: 2rem; }
-@media (min-width: 760px) { .cols { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
-.cols > * { min-width: 0; }
-.cols p { margin: 0; max-width: 65ch; }
-.cols ul { margin: 0; padding-left: 1.1rem; }
-.cols li + li { margin-top: 0.35rem; }
-
-.formulas { margin: 0 0 2rem; border-top: 1px solid var(--rule); }
-.formulas .row {
-  display: grid; grid-template-columns: 1fr; gap: 0.15rem 1.5rem; padding: 0.65rem 0; border-bottom: 1px solid var(--rule-2);
-}
-@media (min-width: 640px) { .formulas .row { grid-template-columns: 11rem minmax(0, 1fr); align-items: baseline; } }
-.formulas dt { font-family: var(--f-display); font-size: 0.88rem; color: var(--ink-3); }
-.formulas dd { margin: 0; font-family: var(--f-math); font-size: 1.15rem; line-height: 1.5; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
-.formulas dd b { font-weight: 700; }
-.formulas dd sub, .formulas dd sup { font-size: 0.68em; }
-
-/* diagrama de flujo entra → proceso → sale */
-.flow {
-  display: grid; grid-template-columns: 1fr; gap: 0.5rem; align-items: center; margin-bottom: 2rem;
-  font-family: var(--f-display);
-}
-@media (min-width: 700px) { .flow { align-items: start; padding-top: 0.2rem; grid-template-columns: minmax(0, 1fr) 2.2rem minmax(0, 1.15fr) 2.2rem minmax(0, 1fr); } }
-.flow .col { display: grid; gap: 0.4rem; min-width: 0; }
-.flow .cap { font-size: 0.8rem; color: var(--ink-3); }
-.flow .chip {
-  border: 1px solid var(--rule); background: var(--sheet); border-radius: 4px; padding: 0.4rem 0.6rem;
-  font-family: var(--f-math); font-size: 1rem; line-height: 1.35;
-}
-.flow .proc { align-self: center;
-  background: var(--ink); color: var(--paper); border-radius: var(--radius); padding: 0.9rem 1rem;
-  font-family: var(--f-math); font-size: 1.05rem; line-height: 1.4; text-align: center;
-}
-.flow .proc .cap { color: color-mix(in srgb, var(--paper) 70%, transparent); display: block; margin-bottom: 0.25rem; font-family: var(--f-display); }
-.flow .out .chip { border-color: var(--accent); }
-.flow .arrow { align-self: center; display: flex; justify-content: center; color: var(--ink-3); }
-.flow .arrow svg { width: 2rem; height: 1rem; }
-@media (max-width: 699px) { .flow .arrow svg { transform: rotate(90deg); } }
-
-ol.steps { list-style: none; counter-reset: s; margin: 0 0 2rem; padding: 0; display: grid; gap: 0.5rem; }
-ol.steps li { counter-increment: s; display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 0.5rem; max-width: 70ch; }
-ol.steps li::before {
-  content: counter(s); font-family: var(--f-display); font-weight: 700; font-size: 0.85rem; color: var(--accent);
-  border: 1.5px solid var(--accent); border-radius: 50%; width: 1.6rem; height: 1.6rem; display: grid; place-items: center; margin-top: 0.1rem;
-}
-
-dl.hyper { margin: 0; display: grid; gap: 0.45rem; }
-dl.hyper dt { font-family: var(--f-mono); font-size: 0.85rem; font-weight: 600; }
-dl.hyper dd { margin: 0 0 0.2rem; color: var(--ink-2); }
-.cx { margin-top: 1rem; font-family: var(--f-display); font-size: 0.9rem; color: var(--ink-2); }
-.cx b { color: var(--ink); }
-ul.ojo li::marker { color: var(--c2); }
-
-/* código */
-.code { margin: 0 0 1.25rem; border-radius: var(--radius); overflow: hidden; background: var(--code-bg); color: var(--code-ink); }
-.code .tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; padding: 0.4rem 0.4rem 0; border-bottom: 1px solid #ffffff1a; }
-.code .tab {
-  font-family: var(--f-display); font-size: 0.85rem; font-weight: 600; color: var(--code-dim); background: transparent;
-  border: 0; border-radius: 4px 4px 0 0; padding: 0.45rem 0.8rem; cursor: pointer;
-}
-.code .tab[aria-selected="true"] { color: var(--code-ink); background: #ffffff12; box-shadow: inset 0 -2px 0 var(--code-kw); }
-.code .copy { margin-left: auto; font-family: var(--f-display); font-size: 0.8rem; color: var(--code-dim); background: transparent; border: 1px solid #ffffff26; border-radius: 4px; padding: 0.25rem 0.6rem; cursor: pointer; margin-bottom: 0.35rem; }
-.code .copy:hover { color: var(--code-ink); }
-.code .note { font-family: var(--f-display); font-size: 0.8rem; color: var(--code-dim); padding: 0.5rem 1rem 0; margin: 0; }
-.code pre { margin: 0; padding: 1rem; max-height: 34rem; overflow: auto; scrollbar-width: thin; }
-.code pre code { background: none; padding: 0; font-size: 0.82rem; line-height: 1.6; color: var(--code-ink); tab-size: 4; }
-.hljs-comment, .hljs-quote { color: var(--code-dim); font-style: italic; }
-.hljs-keyword, .hljs-built_in, .hljs-meta .hljs-keyword, .hljs-literal { color: var(--code-kw); }
-.hljs-string, .hljs-meta .hljs-string { color: var(--code-str); }
-.hljs-number { color: var(--code-num); }
-.hljs-title, .hljs-title.function_ { color: var(--code-fn); }
-.hljs-type, .hljs-title.class_ { color: var(--code-type); }
-.hljs-meta { color: #c9a0ff; }
-.hljs-params { color: var(--code-ink); }
-
-.done-row { display: flex; align-items: center; gap: 0.75rem; font-family: var(--f-display); font-size: 0.88rem; color: var(--ink-3); margin-bottom: 1.25rem; }
-.done-btn[aria-pressed="true"] { background: var(--c3); border-color: var(--c3); color: #fff; }
-
-/* chuleta final */
-.cheat { padding-block: 3rem 1rem; }
-.cheat h2 { font-family: var(--f-display); font-size: var(--step-3); font-weight: 750; letter-spacing: -0.025em; margin: 0 0 1rem; }
-.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet); }
-table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 0.92rem; }
-th, td { text-align: left; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
-th { font-family: var(--f-display); font-weight: 600; font-size: 0.85rem; color: var(--ink-2); background: var(--fig); position: sticky; top: 0; }
-td:first-child { font-family: var(--f-display); font-weight: 600; white-space: nowrap; }
-td a { color: var(--ink); text-decoration: none; }
-td a:hover { color: var(--accent); }
-.yes { color: var(--c3); font-weight: 600; } .no { color: var(--c2); font-weight: 600; }
-
-footer.page { padding-block: 2rem; color: var(--ink-3); font-family: var(--f-display); font-size: 0.88rem; }
-
-</style>
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/theme.js"></script>
+<header class="topbar"><div class="in"><a class="brand" href="index.html">Cuaderno<span class="long"> de ML</span></a><nav aria-label="Secciones"><a href="index.html" aria-current="page">Resumen</a><a href="a-fondo.html">A fondo</a></nav><button class="btn" type="button" id="theme-btn" aria-label="Cambiar tema"><span aria-hidden="true">◐</span><span class="lbl"> Tema</span></button></div></header>
 <div class="shell">
-<nav class="index" aria-label="Índice"><p class="brand"><a href="#top">Cuaderno de ML</a></p><h3>Fundamentos</h3><ul><li><a href="#stats" data-id="stats"><span>Varianza, covarianza y correlación</span><span class="tick" hidden>✓</span></a></li><li><a href="#sigmoid" data-id="sigmoid"><span>Sigmoide</span><span class="tick" hidden>✓</span></a></li><li><a href="#softmax" data-id="softmax"><span>Softmax</span><span class="tick" hidden>✓</span></a></li><li><a href="#topk" data-id="topk"><span>Top-K</span><span class="tick" hidden>✓</span></a></li><li><a href="#loss" data-id="loss"><span>Funciones de pérdida</span><span class="tick" hidden>✓</span></a></li></ul><h3>Optimización y regularización</h3><ul><li><a href="#gd" data-id="gd"><span>Descenso de gradiente, Momentum y Adam</span><span class="tick" hidden>✓</span></a></li><li><a href="#regul" data-id="regul"><span>Regularización L1 y L2</span><span class="tick" hidden>✓</span></a></li></ul><h3>Modelos lineales</h3><ul><li><a href="#linreg" data-id="linreg"><span>Regresión lineal</span><span class="tick" hidden>✓</span></a></li><li><a href="#logreg" data-id="logreg"><span>Regresión logística</span><span class="tick" hidden>✓</span></a></li><li><a href="#perceptron" data-id="perceptron"><span>Perceptrón</span><span class="tick" hidden>✓</span></a></li><li><a href="#svm" data-id="svm"><span>Máquinas de soporte vectorial</span><span class="tick" hidden>✓</span></a></li></ul><h3>Vecinos y probabilidad</h3><ul><li><a href="#knn" data-id="knn"><span>K vecinos más cercanos</span><span class="tick" hidden>✓</span></a></li><li><a href="#nbayes" data-id="nbayes"><span>Naive Bayes</span><span class="tick" hidden>✓</span></a></li></ul><h3>Árboles y ensambles</h3><ul><li><a href="#tree" data-id="tree"><span>Árbol de decisión</span><span class="tick" hidden>✓</span></a></li><li><a href="#forest" data-id="forest"><span>Random Forest</span><span class="tick" hidden>✓</span></a></li><li><a href="#boost" data-id="boost"><span>Gradient Boosting</span><span class="tick" hidden>✓</span></a></li></ul><h3>Reducción de dimensionalidad</h3><ul><li><a href="#pca" data-id="pca"><span>PCA</span><span class="tick" hidden>✓</span></a></li></ul><h3>Clustering</h3><ul><li><a href="#kmeans" data-id="kmeans"><span>K-Means</span><span class="tick" hidden>✓</span></a></li><li><a href="#dbscan" data-id="dbscan"><span>DBSCAN</span><span class="tick" hidden>✓</span></a></li><li><a href="#hclust" data-id="hclust"><span>Clustering jerárquico aglomerativo</span><span class="tick" hidden>✓</span></a></li><li><a href="#gmm" data-id="gmm"><span>Mezcla de gaussianas</span><span class="tick" hidden>✓</span></a></li></ul><h3>Redes neuronales</h3><ul><li><a href="#mlp" data-id="mlp"><span>Perceptrón multicapa</span><span class="tick" hidden>✓</span></a></li></ul><h3>Evaluación</h3><ul><li><a href="#metrics" data-id="metrics"><span>Matriz de confusión, precision, recall, F1 y ROC-AUC</span><span class="tick" hidden>✓</span></a></li><li><a href="#kfold" data-id="kfold"><span>Validación cruzada k-fold</span><span class="tick" hidden>✓</span></a></li></ul><h3>Extra</h3><ul><li><a href="#chuleta"><span>Cuándo usar qué</span></a></li></ul><div class="theme"><button class="btn" type="button" id="theme-btn">Cambiar tema</button></div></nav>
+<nav class="index" aria-label="Índice"><p class="brand"><a href="#top">Cuaderno de ML</a></p><h3>Fundamentos</h3><ul><li><a href="#stats" data-id="stats"><span>Varianza, covarianza y correlación</span><span class="tick" hidden>✓</span></a></li><li><a href="#sigmoid" data-id="sigmoid"><span>Sigmoide</span><span class="tick" hidden>✓</span></a></li><li><a href="#softmax" data-id="softmax"><span>Softmax</span><span class="tick" hidden>✓</span></a></li><li><a href="#topk" data-id="topk"><span>Top-K</span><span class="tick" hidden>✓</span></a></li><li><a href="#loss" data-id="loss"><span>Funciones de pérdida</span><span class="tick" hidden>✓</span></a></li></ul><h3>Optimización y regularización</h3><ul><li><a href="#gd" data-id="gd"><span>Descenso de gradiente, Momentum y Adam</span><span class="tick" hidden>✓</span></a></li><li><a href="#regul" data-id="regul"><span>Regularización L1 y L2</span><span class="tick" hidden>✓</span></a></li></ul><h3>Modelos lineales</h3><ul><li><a href="#linreg" data-id="linreg"><span>Regresión lineal</span><span class="tick" hidden>✓</span></a></li><li><a href="#logreg" data-id="logreg"><span>Regresión logística</span><span class="tick" hidden>✓</span></a></li><li><a href="#perceptron" data-id="perceptron"><span>Perceptrón</span><span class="tick" hidden>✓</span></a></li><li><a href="#svm" data-id="svm"><span>Máquinas de soporte vectorial</span><span class="tick" hidden>✓</span></a></li></ul><h3>Vecinos y probabilidad</h3><ul><li><a href="#knn" data-id="knn"><span>K vecinos más cercanos</span><span class="tick" hidden>✓</span></a></li><li><a href="#nbayes" data-id="nbayes"><span>Naive Bayes</span><span class="tick" hidden>✓</span></a></li></ul><h3>Árboles y ensambles</h3><ul><li><a href="#tree" data-id="tree"><span>Árbol de decisión</span><span class="tick" hidden>✓</span></a></li><li><a href="#forest" data-id="forest"><span>Random Forest</span><span class="tick" hidden>✓</span></a></li><li><a href="#boost" data-id="boost"><span>Gradient Boosting</span><span class="tick" hidden>✓</span></a></li></ul><h3>Reducción de dimensionalidad</h3><ul><li><a href="#pca" data-id="pca"><span>PCA</span><span class="tick" hidden>✓</span></a></li></ul><h3>Clustering</h3><ul><li><a href="#kmeans" data-id="kmeans"><span>K-Means</span><span class="tick" hidden>✓</span></a></li><li><a href="#dbscan" data-id="dbscan"><span>DBSCAN</span><span class="tick" hidden>✓</span></a></li><li><a href="#hclust" data-id="hclust"><span>Clustering jerárquico aglomerativo</span><span class="tick" hidden>✓</span></a></li><li><a href="#gmm" data-id="gmm"><span>Mezcla de gaussianas</span><span class="tick" hidden>✓</span></a></li></ul><h3>Redes neuronales</h3><ul><li><a href="#mlp" data-id="mlp"><span>Perceptrón multicapa</span><span class="tick" hidden>✓</span></a></li></ul><h3>Evaluación</h3><ul><li><a href="#metrics" data-id="metrics"><span>Matriz de confusión, precision, recall, F1 y ROC-AUC</span><span class="tick" hidden>✓</span></a></li><li><a href="#kfold" data-id="kfold"><span>Validación cruzada k-fold</span><span class="tick" hidden>✓</span></a></li></ul><h3>Extra</h3><ul><li><a href="#chuleta"><span>Cuándo usar qué</span></a></li></ul></nav>
 <main>
 <div class="mobile-nav"><label for="jump">Ir a<select id="jump"><option value="top">Inicio</option><optgroup label="Fundamentos"><option value="stats">Varianza, covarianza y correlación</option><option value="sigmoid">Sigmoide</option><option value="softmax">Softmax</option><option value="topk">Top-K</option><option value="loss">Funciones de pérdida</option></optgroup><optgroup label="Optimización y regularización"><option value="gd">Descenso de gradiente, Momentum y Adam</option><option value="regul">Regularización L1 y L2</option></optgroup><optgroup label="Modelos lineales"><option value="linreg">Regresión lineal</option><option value="logreg">Regresión logística</option><option value="perceptron">Perceptrón</option><option value="svm">Máquinas de soporte vectorial</option></optgroup><optgroup label="Vecinos y probabilidad"><option value="knn">K vecinos más cercanos</option><option value="nbayes">Naive Bayes</option></optgroup><optgroup label="Árboles y ensambles"><option value="tree">Árbol de decisión</option><option value="forest">Random Forest</option><option value="boost">Gradient Boosting</option></optgroup><optgroup label="Reducción de dimensionalidad"><option value="pca">PCA</option></optgroup><optgroup label="Clustering"><option value="kmeans">K-Means</option><option value="dbscan">DBSCAN</option><option value="hclust">Clustering jerárquico aglomerativo</option><option value="gmm">Mezcla de gaussianas</option></optgroup><optgroup label="Redes neuronales"><option value="mlp">Perceptrón multicapa</option></optgroup><optgroup label="Evaluación"><option value="metrics">Matriz de confusión, precision, recall, F1 y ROC-AUC</option><option value="kfold">Validación cruzada k-fold</option></optgroup><option value="chuleta">Cuándo usar qué</option></select></label></div>
 <header class="hero" id="top">
@@ -503,7 +236,7 @@ print(softmax(np.array([1000, 1001, 1002.0])))  # estable: SciPy resta el máxim
 # import torch, torch.nn.functional as F
 # F.softmax(t, dim=-1); F.cross_entropy(logits, target)  # CE ya incluye log_softmax
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="softmax" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="softmax" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#softmax-ce-fondo">A fondo →</a></div>
 </section><section class="algo" id="topk" data-fam="fund">
 <header><h2>Top-K</h2><p class="tagline">Quedarse con los K elementos de mayor score sin ordenar todo. Aparece en recomendación, búsqueda vectorial, métricas y generación de texto.</p></header>
 <figure class="anim" data-anim="topk"><canvas role="img" aria-label="Animación: Top-K"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><label class="ctl"><span>K</span><input type="range" id="tk-k" min="1" max="8" step="1" value="4"><output for="tk-k">4</output></label><div class="readout" aria-live="off"></div></div></figure>
@@ -661,7 +394,7 @@ print(log_loss([0, 2], [[0.7, 0.2, 0.1], [0.1, 0.1, 0.8]], labels=[0, 1, 2]))  #
 # PyTorch: nn.MSELoss(), nn.L1Loss(), nn.HuberLoss(delta=1.0),
 #          nn.BCEWithLogitsLoss(), nn.CrossEntropyLoss()  (estas dos reciben logits)
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="loss" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="loss" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#softmax-ce-fondo">A fondo →</a></div>
 </section><p class="fam-head" id="fam-opt">Optimización y regularización</p><section class="algo" id="gd" data-fam="opt">
 <header><h2>Descenso de gradiente, Momentum y Adam</h2><p class="tagline">El motor del aprendizaje: dar pasos en la dirección contraria al gradiente hasta llegar a un mínimo de la pérdida.</p></header>
 <figure class="anim" data-anim="gd"><canvas role="img" aria-label="Animación: Descenso de gradiente, Momentum y Adam"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -749,7 +482,7 @@ for name, make in {
 
 # Sin PyTorch: scipy.optimize.minimize(f, x0, jac=grad, method="L-BFGS-B")
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="gd" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="gd" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#optim-fondo">A fondo →</a></div>
 </section><section class="algo" id="regul" data-fam="opt">
 <header><h2>Regularización L1 y L2 (Lasso y Ridge)</h2><p class="tagline">Penalizar pesos grandes para que el modelo generalice. L2 encoge todos los pesos; L1 lleva varios exactamente a cero.</p></header>
 <figure class="anim" data-anim="regul"><canvas role="img" aria-label="Animación: Regularización L1 y L2 (Lasso y Ridge)"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -847,7 +580,7 @@ print("enet ", ElasticNet(alpha=0.3, l1_ratio=0.5).fit(X, y).coef_.round(3))
 cv = LassoCV(cv=5).fit(X, y)                                    # elige λ por validación cruzada
 print("λ óptimo", round(cv.alpha_, 4))
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="regul" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="regul" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#regul-fondo">A fondo →</a></div>
 </section><p class="fam-head" id="fam-lin">Modelos lineales</p><section class="algo" id="linreg" data-fam="lin">
 <header><h2>Regresión lineal</h2><p class="tagline">Ajustar un hiperplano que minimiza el error cuadrático. El modelo más simple y el punto de partida de casi todo.</p></header>
 <figure class="anim" data-anim="linreg"><canvas role="img" aria-label="Animación: Regresión lineal"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -1188,7 +921,7 @@ grid = GridSearchCV(make_pipeline(StandardScaler(), SVC(kernel="rbf")),
 print("rbf", grid.best_params_, round(grid.best_score_, 3))
 print("vectores de soporte", grid.best_estimator_[-1].n_support_)
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="svm" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="svm" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#svm-fondo">A fondo →</a></div>
 </section><p class="fam-head" id="fam-inst">Vecinos y probabilidad</p><section class="algo" id="knn" data-fam="inst">
 <header><h2>K vecinos más cercanos (KNN)</h2><p class="tagline">Clasificar un punto por votación de los K ejemplos más parecidos. No entrena nada: memoriza.</p></header>
 <figure class="anim" data-anim="knn"><canvas role="img" aria-label="Animación: K vecinos más cercanos (KNN)"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><label class="ctl"><span>K</span><input type="range" id="knn-k" min="1" max="15" step="2" value="5"><output for="knn-k">5</output></label><div class="readout" aria-live="off"></div></div></figure>
@@ -1252,7 +985,7 @@ for k in (1, 5, 15):
     print(k, cross_val_score(model, X, y, cv=5).mean().round(3))
 # algorithm="auto" elige entre fuerza bruta, KD-Tree o Ball-Tree
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="knn" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="knn" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#vector-fondo">A fondo →</a></div>
 </section><section class="algo" id="nbayes" data-fam="inst">
 <header><h2>Naive Bayes</h2><p class="tagline">Aplicar el teorema de Bayes suponiendo que las features son independientes dada la clase. Ingenuo, rápido y sorprendentemente bueno.</p></header>
 <figure class="anim" data-anim="nbayes"><canvas role="img" aria-label="Animación: Naive Bayes"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><label class="ctl"><span>Prior P(azul)</span><input type="range" id="nb-p" min="0.05" max="0.95" step="0.05" value="0.5"><output for="nb-p">0.50</output></label><div class="readout" aria-live="off"></div></div></figure>
@@ -1461,7 +1194,7 @@ print(export_text(tree, feature_names=names))
 print("acc", tree.score(Xte, yte))
 print(dict(zip(names, tree.feature_importances_.round(3))))
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="tree" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="tree" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#tree-fondo">A fondo →</a></div>
 </section><section class="algo" id="forest" data-fam="tree">
 <header><h2>Random Forest</h2><p class="tagline">Muchos árboles distintos entrenados con datos y features al azar, que votan. Reduce la varianza de un árbol sin aumentar el sesgo.</p></header>
 <figure class="anim" data-anim="forest"><canvas role="img" aria-label="Animación: Random Forest"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -1548,7 +1281,7 @@ rf = RandomForestClassifier(n_estimators=200,
 print("OOB", round(rf.oob_score_, 3))
 print("importancias", rf.feature_importances_.round(3))  # las basura salen ≈ 0
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="forest" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="forest" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#forest-fondo">A fondo →</a></div>
 </section><section class="algo" id="boost" data-fam="tree">
 <header><h2>Gradient Boosting</h2><p class="tagline">Árboles pequeños añadidos uno tras otro, cada uno corrigiendo lo que los anteriores aún fallan. El estado del arte en datos tabulares.</p></header>
 <figure class="anim" data-anim="boost"><canvas role="img" aria-label="Animación: Gradient Boosting"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -1641,7 +1374,7 @@ print(cross_val_score(hgb, Xc, yc, cv=5).mean().round(4))
 
 # Producción: xgboost.XGBClassifier, lightgbm.LGBMClassifier, catboost.CatBoostClassifier
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="boost" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="boost" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#boost-fondo">A fondo →</a></div>
 </section><p class="fam-head" id="fam-dim">Reducción de dimensionalidad</p><section class="algo" id="pca" data-fam="dim">
 <header><h2>PCA: reducción de dimensionalidad con la covarianza</h2><p class="tagline">Rotar los datos a las direcciones de máxima varianza y quedarse con las primeras. Comprime, visualiza y elimina redundancia.</p></header>
 <figure class="anim" data-anim="pca"><div class="stage3d" id="three-pca" role="img" aria-label="Escena 3D interactiva: PCA: reducción de dimensionalidad con la covarianza. Arrastra para rotar."></div><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -1745,7 +1478,7 @@ vals, vecs = np.linalg.eigh(C)               # eigh: matriz simétrica, valores 
 print(vals[::-1].round(3))
 # PCA(n_components=0.95) → elige k para retener el 95% de la varianza
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="pca" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="pca" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#pca-fondo">A fondo →</a></div>
 </section><p class="fam-head" id="fam-clu">Clustering</p><section class="algo" id="kmeans" data-fam="clu">
 <header><h2>K-Means</h2><p class="tagline">Agrupar los datos en K clusters alternando dos pasos: asignar cada punto al centro más cercano y mover cada centro a la media de su grupo.</p></header>
 <figure class="anim" data-anim="kmeans"><canvas role="img" aria-label="Animación: K-Means"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -1834,7 +1567,7 @@ km = KMeans(n_clusters=3, n_init=10, random_state=0).fit(X)
 print(km.cluster_centers_.round(2))
 # Muchos datos: sklearn.cluster.MiniBatchKMeans
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="kmeans" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="kmeans" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#kmeans-fondo">A fondo →</a></div>
 </section><section class="algo" id="dbscan" data-fam="clu">
 <header><h2>DBSCAN</h2><p class="tagline">Clusters como regiones densas separadas por zonas vacías. Encuentra formas arbitrarias, no necesita K y marca el ruido.</p></header>
 <figure class="anim" data-anim="dbscan"><canvas role="img" aria-label="Animación: DBSCAN"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -1919,7 +1652,7 @@ labels = db.labels_                              # −1 = ruido
 print("clusters", len(set(labels)) - (-1 in labels), "ruido", (labels == -1).sum())
 # Densidad variable: sklearn.cluster.HDBSCAN (o OPTICS)
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="dbscan" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="dbscan" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#dbscan-fondo">A fondo →</a></div>
 </section><section class="algo" id="hclust" data-fam="clu">
 <header><h2>Clustering jerárquico aglomerativo</h2><p class="tagline">Empezar con cada punto como su propio cluster y fusionar repetidamente los dos más cercanos. El resultado es un árbol: el dendrograma.</p></header>
 <figure class="anim" data-anim="hclust"><canvas role="img" aria-label="Animación: Clustering jerárquico aglomerativo"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -2080,7 +1813,7 @@ print(g.predict_proba([[0.5]]).round(3))      # asignación "suave" (responsabil
 for k in (1, 2, 3, 4):
     print(k, round(GaussianMixture(k, random_state=0).fit(x).bic(x), 1))
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="gmm" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="gmm" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#gmm-fondo">A fondo →</a></div>
 </section><p class="fam-head" id="fam-nn">Redes neuronales</p><section class="algo" id="mlp" data-fam="nn">
 <header><h2>Perceptrón multicapa (MLP) y backpropagation</h2><p class="tagline">Capas de neuronas con activaciones no lineales, entrenadas propagando el error hacia atrás con la regla de la cadena.</p></header>
 <figure class="anim" data-anim="mlp"><canvas role="img" aria-label="Animación: Perceptrón multicapa (MLP) y backpropagation"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -2220,7 +1953,7 @@ for epoch in range(400):
         opt.step()
 print("torch acc", (net(Xt).argmax(1) == yt).float().mean().item())
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="mlp" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="mlp" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#backprop-fondo">A fondo →</a></div>
 </section><p class="fam-head" id="fam-eval">Evaluación</p><section class="algo" id="metrics" data-fam="eval">
 <header><h2>Matriz de confusión, precision, recall, F1 y ROC-AUC</h2><p class="tagline">Cómo medir un clasificador más allá de la accuracy, y cómo el umbral mueve el balance entre tipos de error.</p></header>
 <figure class="anim" data-anim="metrics"><canvas role="img" aria-label="Animación: Matriz de confusión, precision, recall, F1 y ROC-AUC"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><label class="ctl"><span>Umbral</span><input type="range" id="mt-t" min="0.02" max="0.98" step="0.01" value="0.5"><output for="mt-t">0.50</output></label><div class="readout" aria-live="off"></div></div></figure>
@@ -2295,7 +2028,7 @@ print("AUC", roc_auc_score(y, s))
 fpr, tpr, thr = roc_curve(y, s)
 print(classification_report(y, pred, digits=3))
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="metrics" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="metrics" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#metrics-fondo">A fondo →</a></div>
 </section><section class="algo" id="kfold" data-fam="eval">
 <header><h2>Validación cruzada k-fold</h2><p class="tagline">Estimar cómo se comportará el modelo con datos nuevos entrenando y evaluando k veces sobre particiones distintas.</p></header>
 <figure class="anim" data-anim="kfold"><canvas role="img" aria-label="Animación: Validación cruzada k-fold"></canvas><div class="anim-bar"><button class="btn play" type="button" aria-pressed="true">Pausa</button><button class="btn reset" type="button">Reiniciar</button><div class="readout" aria-live="off"></div></div></figure>
@@ -2367,7 +2100,7 @@ print(scores.round(4), f"{scores.mean():.4f} ± {scores.std(ddof=1):.4f}")
 res = cross_validate(LinearRegression(), X, y, cv=cv, scoring=["r2", "neg_mean_absolute_error"])
 print(res["test_r2"].round(4))
 </code></pre></div></div>
-<div class="done-row"><button class="btn done-btn" type="button" data-id="kfold" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span></div>
+<div class="done-row"><button class="btn done-btn" type="button" data-id="kfold" aria-pressed="false">Marcar como repasado hoy</button><span class="done-when"></span><a class="see-deep" href="a-fondo.html#cv-fondo">A fondo →</a></div>
 </section>
 <section class="cheat" id="chuleta"><h2>Cuándo usar qué</h2>
 <div class="table-wrap"><table><thead><tr><th>Algoritmo</th><th>Tarea</th><th>¿Escalar features?</th><th>Interpretabilidad</th><th>Entrenamiento</th><th>Úsalo cuando</th></tr></thead><tbody><tr><td><a href="#linreg">Regresión lineal</a></td><td>Regresión</td><td class="yes">sí*</td><td>alta</td><td>O(nd²)</td><td>Línea base para valores continuos.</td></tr><tr><td><a href="#logreg">Regresión logística</a></td><td>Clasificación</td><td class="yes">sí</td><td>alta</td><td>O(nd)·épocas</td><td>Línea base con probabilidades.</td></tr><tr><td><a href="#svm">Máquinas de soporte vectorial</a></td><td>Clasificación</td><td class="yes">sí</td><td>media</td><td>O(n²)–O(n³)</td><td>Pocas muestras, muchas features.</td></tr><tr><td><a href="#knn">K vecinos más cercanos</a></td><td>Ambas</td><td class="yes">sí</td><td>media</td><td>O(1) / O(nd) predecir</td><td>Datos pequeños, fronteras irregulares.</td></tr><tr><td><a href="#nbayes">Naive Bayes</a></td><td>Clasificación</td><td class="no">no</td><td>media</td><td>O(nd)</td><td>Texto y bases muy rápidas.</td></tr><tr><td><a href="#tree">Árbol de decisión</a></td><td>Ambas</td><td class="no">no</td><td>alta</td><td>O(d·n log n)</td><td>Reglas legibles.</td></tr><tr><td><a href="#forest">Random Forest</a></td><td>Ambas</td><td class="no">no</td><td>baja</td><td>B·árbol</td><td>Primer modelo serio en tabulares.</td></tr><tr><td><a href="#boost">Gradient Boosting</a></td><td>Ambas</td><td class="no">no</td><td>baja</td><td>M·árbol</td><td>Máxima precisión en tabulares.</td></tr><tr><td><a href="#mlp">Perceptrón multicapa</a></td><td>Ambas</td><td class="yes">sí</td><td>baja</td><td>O(params)·épocas</td><td>No linealidad con muchos datos.</td></tr><tr><td><a href="#pca">PCA</a></td><td>Reducción</td><td class="yes">sí</td><td>media</td><td>O(nd² + d³)</td><td>Comprimir, visualizar, decorrelacionar.</td></tr><tr><td><a href="#kmeans">K-Means</a></td><td>Clustering</td><td class="yes">sí</td><td>alta</td><td>O(nKd)·iter</td><td>Grupos esféricos, K conocido.</td></tr><tr><td><a href="#dbscan">DBSCAN</a></td><td>Clustering</td><td class="yes">sí</td><td>media</td><td>O(n log n)</td><td>Formas arbitrarias y ruido.</td></tr><tr><td><a href="#hclust">Clustering jerárquico aglomerativo</a></td><td>Clustering</td><td class="yes">sí</td><td>alta</td><td>O(n² log n)</td><td>Jerarquías, pocos datos.</td></tr><tr><td><a href="#gmm">Mezcla de gaussianas</a></td><td>Clustering</td><td class="yes">sí</td><td>media</td><td>O(nKd²)·iter</td><td>Clusters elípticos, pertenencia suave.</td></tr></tbody></table></div>
@@ -3837,11 +3570,6 @@ function threeLoop() {
   const onTheme = () => { readColors(); STAGES.forEach(s => s.draw()); THREE_SCENES.forEach(v => { v.theme && v.theme(); v.render(); }); };
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", onTheme);
   new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  const tb = document.getElementById("theme-btn");
-  if (tb) tb.addEventListener("click", () => {
-    const cur = document.documentElement.dataset.theme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
-  });
 
   // código: resaltado, pestañas y copiar
   if (window.hljs) document.querySelectorAll("pre code").forEach(el => { try { hljs.highlightElement(el); } catch (e) {} });

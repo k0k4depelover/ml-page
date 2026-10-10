@@ -1,0 +1,111 @@
+<p class="lead">Árbol = búsqueda voraz. En cada nodo prueba todas las features y todos los umbrales, elige el corte que más baja la impureza, parte datos y repite en cada hijo. Nunca revisa decisiones pasadas.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 400" role="img" aria-label="Algoritmo de construcción de árbol: por cada feature ordenar, barrer umbrales con conteos acumulados, medir ganancia, elegir el mejor corte, partir y recursión hasta criterio de parada.">
+<g class="in"><rect x="20" y="40" width="150" height="56" rx="5"/><text class="mid" x="95" y="64">datos del nodo</text><text class="m mid" x="95" y="84">X (m×d), y</text></g>
+<g class="dec"><rect x="20" y="150" width="150" height="80" rx="5"/><text class="mid" x="95" y="172">¿parar?</text><text class="s mid" x="95" y="192">profundidad ≥ max_depth</text><text class="s mid" x="95" y="207">m &lt; min_samples_split</text><text class="s mid" x="95" y="222">nodo puro · ganancia ≤ 0</text></g>
+<g class="out"><rect x="20" y="290" width="150" height="56" rx="5"/><text class="mid" x="95" y="314">hoja</text><text class="s mid" x="95" y="332">clase mayoritaria / media</text></g>
+<path class="e nt" d="M95 96V146"/><path class="e dec" d="M95 230V286"/><text class="s c4" x="102" y="262">sí</text>
+<path class="e dec" d="M170 190H206"/><text class="s c4" x="180" y="182">no</text>
+
+<rect class="grp" x="210" y="20" width="490" height="250" rx="6"/><text class="cap" x="222" y="40">para cada feature j = 1…d (o subconjunto aleatorio)</text>
+<g class="op"><rect x="230" y="56" width="140" height="60" rx="5"/><text class="mid" x="300" y="80">ordenar por xⱼ</text><text class="s mid" x="300" y="100">O(m log m)</text></g>
+<g class="op"><rect x="400" y="56" width="280" height="60" rx="5"/><text class="mid" x="540" y="80">barrer umbrales entre valores</text><text class="s mid" x="540" y="100">conteos izquierda/derecha acumulados: O(m)</text></g>
+<g class="op"><rect x="230" y="150" width="450" height="60" rx="5"/><text class="m mid" x="455" y="176">Δ(j, t) = I(padre) − (m_L/m) I(L) − (m_R/m) I(R)</text><text class="s mid" x="455" y="198">I = Gini, entropía (clasificación) · MSE (regresión)</text></g>
+<path class="e fw" d="M370 86H396"/><path class="e fw" d="M540 116V146"/>
+<text class="s" x="230" y="240">Costo por nodo: O(d · m log m). Por nivel: O(d · n log n).</text>
+<text class="s" x="230" y="258">Ordenar una vez al inicio y mantener índices evita reordenar.</text>
+
+<g class="op"><rect x="740" y="150" width="200" height="60" rx="5"/><text class="m mid" x="840" y="176">(j*, t*) = argmax Δ</text><text class="s mid" x="840" y="196">mejor corte global del nodo</text></g>
+<path class="e fw" d="M680 180H736"/>
+<g class="op"><rect x="740" y="250" width="200" height="56" rx="5"/><text class="m mid" x="840" y="274">L: xⱼ* ≤ t*  ·  R: xⱼ* &gt; t*</text><text class="s mid" x="840" y="292">partir filas</text></g>
+<path class="e fw" d="M840 210V246"/>
+<path class="e st" d="M840 306V378H8V68H16"/><text class="s c3" x="340" y="362">recursión: cada hijo vuelve a “datos del nodo” (profundidad + 1)</text>
+</svg></div><figcaption>Lazo verde = recursión. Ámbar = criterios de parada (hiperparámetros que controlan sobreajuste).</figcaption></figure>
+
+<h3>Paso a paso: elegir el primer corte</h3>
+<p>Una feature (edad) y seis clientes. Clase 1 = compra. Criterio Gini.</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 580 380" role="img" aria-label="Seis puntos ordenados por edad, umbrales candidatos y su ganancia Gini.">
+<path class="ln ink" d="M40 120H560"/>
+<g data-step="1-6">
+<circle class="f1 pt" cx="60" cy="120" r="11"/><circle class="f1 pt" cx="120" cy="120" r="11"/><circle class="f2 pt" cx="200" cy="120" r="11"/><circle class="f1 pt" cx="295" cy="120" r="11"/><circle class="f2 pt" cx="390" cy="120" r="11"/><circle class="f2 pt" cx="485" cy="120" r="11"/>
+<text class="s mid" x="60" y="150">22</text><text class="s mid" x="120" y="150">25</text><text class="s mid" x="200" y="150">31</text><text class="s mid" x="295" y="150">38</text><text class="s mid" x="390" y="150">45</text><text class="s mid" x="485" y="150">52</text>
+<text class="s c1" x="40" y="40">● clase 0</text><text class="s c2" x="120" y="40">● clase 1</text><text class="s" x="40" y="96">edad (ordenada) →</text>
+</g>
+<g data-step="2"><text class="sm" x="300" y="40">Gini padre = 1 − (3/6)² − (3/6)² = 0.5</text></g>
+<g data-step="3-4">
+<path class="ln dash" d="M90 70V170M160 70V170M247 70V170M342 70V170M437 70V170"/>
+<text class="s mid" x="90" y="190">23.5</text><text class="s mid" x="160" y="190">28</text><text class="s mid" x="247" y="190">34.5</text><text class="s mid" x="342" y="190">41.5</text><text class="s mid" x="437" y="190">48.5</text>
+<rect class="soft1" x="78" y="286" width="24" height="24"/><rect class="soft1" x="148" y="250" width="24" height="60"/><rect class="soft1" x="235" y="297" width="24" height="13"/><rect class="soft1" x="330" y="250" width="24" height="60"/><rect class="soft1" x="425" y="286" width="24" height="24"/>
+<text class="s mid" x="90" y="280">0.10</text><text class="s mid" x="160" y="244">0.25</text><text class="s mid" x="247" y="291">0.06</text><text class="s mid" x="342" y="244">0.25</text><text class="s mid" x="437" y="280">0.10</text>
+<path class="ln" d="M40 310H560"/><text class="s" x="40" y="330">ganancia Δ por umbral</text>
+</g>
+<g data-step="4-6"><path class="sa" d="M160 60V180" style="stroke-width:3"/><text class="s ac mid" x="160" y="54">t* = 28</text></g>
+<g data-step="5"><rect class="soft1" x="40" y="200" width="110" height="26" rx="4"/><text class="s mid" x="95" y="218">L: [0, 0] Gini 0</text><rect class="soft2" x="172" y="200" width="330" height="26" rx="4"/><text class="s mid" x="337" y="218">R: [1, 0, 1, 1] Gini 0.375 → seguir partiendo</text></g>
+<g data-step="6"><text class="s c3" x="300" y="352">R se parte en 34.5: [1] y [0, 1, 1] …</text><text class="s c3" x="300" y="368">hasta hojas puras o max_depth</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Ordenar</b><span class="eq">x = (22, 25, 31, 38, 45, 52),  y = (0, 0, 1, 0, 1, 1)</span><p>Sólo importan cortes entre valores consecutivos distintos: m − 1 = 5 candidatos.</p></li>
+<li><b class="t">2 · Impureza del padre</b><span class="eq">Gini = 1 − Σ p_c² = 1 − 0.25 − 0.25 = 0.5</span><p>0 = puro. 0.5 = máxima mezcla con 2 clases.</p></li>
+<li><b class="t">3 · Barrer umbrales</b><span class="eq">t = 28: L = [0, 0] → 0,  R = [1, 0, 1, 1] → 1 − (1/4)² − (3/4)² = 0.375</span><span class="eq">ponderado = (2/6)·0 + (4/6)·0.375 = 0.25  →  Δ = 0.25</span><p>Al mover el umbral, un punto pasa de R a L: actualizar conteos es O(1).</p></li>
+<li><b class="t">4 · Elegir el mejor</b><span class="eq">Δ: 0.10, 0.25, 0.06, 0.25, 0.10  →  empate 28 y 41.5</span><p>Empate: se queda el primero (o aleatorio). Con d features se repite por cada una y gana el máximo global.</p></li>
+<li><b class="t">5 · Partir</b><span class="eq">edad ≤ 28 → hoja clase 0 (pura)</span><p>R sigue mezclado: el algoritmo se llama a sí mismo con esas 4 filas.</p></li>
+<li><b class="t">6 · Recursión</b><span class="eq">R: corte en 34.5 → [1] y [0, 1, 1]; luego 41.5 → [0] y [1, 1]</span><p>Sin límite, el árbol memoriza: hojas de 1 muestra. max_depth y min_samples_leaf frenan.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Predicción: recorrer un camino</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 300" role="img" aria-label="Árbol resultante y camino recorrido por una muestra nueva.">
+<g class="op"><rect x="400" y="20" width="160" height="50" rx="5"/><text class="m mid" x="480" y="50">edad ≤ 28 ?</text></g>
+<g class="out"><rect x="200" y="120" width="160" height="50" rx="5"/><text class="mid" x="280" y="142">hoja: clase 0</text><text class="s mid" x="280" y="160">2/2 muestras</text></g>
+<g class="hot"><rect x="600" y="120" width="160" height="50" rx="5"/><text class="m mid" x="680" y="150">edad ≤ 34.5 ?</text></g>
+<g class="out"><rect x="480" y="220" width="160" height="50" rx="5"/><text class="mid" x="560" y="242">hoja: clase 1</text><text class="s mid" x="560" y="260">1/1</text></g>
+<g class="hot"><rect x="720" y="220" width="200" height="50" rx="5"/><text class="mid" x="820" y="242">… edad ≤ 41.5 ?</text><text class="s mid" x="820" y="260">40 ≤ 41.5 → hoja clase 0</text></g>
+<path class="e nt" d="M440 70L320 116"/><path class="e fw" d="M520 70L640 116" style="stroke-width:3"/><path class="e nt" d="M640 170L580 216"/><path class="e fw" d="M720 170L790 216" style="stroke-width:3"/>
+<text class="s" x="350" y="98">sí</text><text class="s c1" x="590" y="98">no</text><text class="s" x="590" y="198">sí</text><text class="s c1" x="770" y="198">no</text>
+<g class="in"><rect x="20" y="20" width="200" height="60" rx="5"/><text class="mid" x="120" y="44">muestra nueva</text><text class="m mid" x="120" y="66">edad = 40</text></g>
+<text class="s" x="20" y="120">Costo: O(profundidad)</text><text class="s" x="20" y="138">≈ log₂ n comparaciones.</text><text class="s" x="20" y="156">Microsegundos.</text>
+<text class="s" x="20" y="200">Probabilidad = fracción de</text><text class="s" x="20" y="218">clase en la hoja.</text>
+</svg></div><figcaption>Camino azul grueso = comparaciones que hace la muestra. Resto del árbol no se toca.</figcaption></figure>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Gini</dt><dd>G = 1 − Σ<sub>c</sub> p<sub>c</sub>²   (prob. de error al etiquetar al azar según p)</dd></div>
+<div class="row"><dt>Entropía</dt><dd>H = −Σ<sub>c</sub> p<sub>c</sub> log₂ p<sub>c</sub>   (bits para codificar la clase)</dd></div>
+<div class="row"><dt>Ganancia</dt><dd>Δ = I(padre) − (m<sub>L</sub>/m) I(L) − (m<sub>R</sub>/m) I(R)</dd></div>
+<div class="row"><dt>Regresión</dt><dd>I = (1/m) Σ (y<sub>i</sub> − ȳ)²;   hoja predice ȳ;   barrido con sumas Σy y Σy² acumuladas</dd></div>
+<div class="row"><dt>Poda costo-complejidad</dt><dd>R<sub>α</sub>(T) = R(T) + α · |hojas(T)|   (ccp_alpha en sklearn)</dd></div>
+<div class="row"><dt>Importancia (MDI)</dt><dd>imp(j) = Σ<sub>nodos que usan j</sub> (m<sub>nodo</sub>/n) · Δ<sub>nodo</sub>   (sesgada hacia features con muchos valores)</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 280" role="img" aria-label="Árbol entrenado offline, exportado como reglas y ejecutado en línea con explicación del camino.">
+<rect class="lane" x="4" y="6" width="952" height="120" rx="6"/><text class="cap" x="16" y="26">offline</text>
+<g class="in"><rect x="20" y="42" width="160" height="56" rx="5"/><text class="mid" x="100" y="66">tabla histórica</text><text class="s mid" x="100" y="84">sin escalar, categorías</text></g>
+<g class="hot"><rect x="210" y="42" width="190" height="56" rx="5"/><text class="h mid" x="305" y="66">fit árbol</text><text class="s mid" x="305" y="84">max_depth vía CV</text></g>
+<g class="op"><rect x="430" y="42" width="220" height="56" rx="5"/><text class="mid" x="540" y="66">revisión con negocio</text><text class="s mid" x="540" y="84">reglas legibles, sesgos visibles</text></g>
+<g class="st"><rect x="680" y="42" width="260" height="56" rx="5"/><text class="mid" x="810" y="66">export</text><text class="s mid" x="810" y="84">JSON · if/else · SQL CASE WHEN</text></g>
+<path class="e fw" d="M180 70H206"/><path class="e fw" d="M400 70H426"/><path class="e st" d="M650 70H676"/>
+<rect class="lane" x="4" y="138" width="952" height="136" rx="6"/><text class="cap" x="16" y="158">online · crédito, triage, fraude</text>
+<g class="in"><rect x="20" y="176" width="150" height="56" rx="5"/><text class="mid" x="95" y="200">solicitud</text><text class="s mid" x="95" y="218">features crudas</text></g>
+<g class="hot"><rect x="200" y="176" width="200" height="56" rx="5"/><text class="h mid" x="300" y="200">recorrer árbol</text><text class="s mid" x="300" y="218">~10 comparaciones, &lt; 10 µs</text></g>
+<g class="dec"><rect x="430" y="176" width="180" height="56" rx="5"/><text class="mid" x="520" y="200">decisión</text><text class="s mid" x="520" y="218">aprobar / revisar</text></g>
+<g class="out"><rect x="640" y="176" width="300" height="56" rx="5"/><text class="mid" x="790" y="200">motivo = camino recorrido</text><text class="s mid" x="790" y="218">“ingreso ≤ X y deuda &gt; Y” (auditable)</text></g>
+<path class="e fw" d="M170 204H196"/><path class="e dec" d="M400 204H426"/><path class="e nt" d="M610 204H636"/>
+<path class="e st" d="M810 98V130H380V172"/>
+<text class="s" x="20" y="260">También corre dentro de la base de datos como SQL: sin servicio de modelos.</text>
+</svg></div><figcaption>Árbol solo = modelo auditable. Árboles en ensamble (siguientes temas) = precisión, pero se pierde legibilidad.</figcaption></figure>
+<dl class="kv">
+<dt>Preprocesamiento</dt><dd>No necesita escalar (cortes son invariantes a transformaciones monótonas). Categóricas: one-hot o soporte nativo (LightGBM, sklearn ≥ 1.4 con HistGradientBoosting).</dd>
+<dt>Faltantes</dt><dd>XGBoost/LightGBM aprenden dirección por defecto para NaN en cada nodo. sklearn clásico: imputar.</dd>
+<dt>Monitorear</dt><dd>Distribución de hojas alcanzadas en producción vs entrenamiento: hoja que antes recibía 2% y ahora 20% = drift.</dd>
+<dt>Re-entrenar</dt><dd>Árbol es inestable: datos ligeramente distintos ⇒ árbol muy distinto. Versionar y comparar reglas entre versiones.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>Árbol sin límite = 100% en train, mal en test. Siempre controlar profundidad u hojas mínimas.</li>
+<li>Importancia MDI favorece features continuas o con muchas categorías (IDs). Preferir importancia por permutación.</li>
+<li>Fronteras sólo paralelas a los ejes: relación diagonal x₁ ≈ x₂ necesita escalera de muchos cortes.</li>
+<li>Clases desbalanceadas: usar <code>class_weight</code> o el árbol ignora la minoritaria.</li>
+</ul>

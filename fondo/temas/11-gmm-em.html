@@ -1,0 +1,103 @@
+<p class="lead">GMM modela los datos como mezcla de K gaussianas. No se sabe qué gaussiana generó cada punto (variable oculta). EM alterna: E estima esa pertenencia en forma suave; M re-estima parámetros con esos pesos. Log-verosimilitud nunca baja.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 400" role="img" aria-label="Inicialización, paso E con responsabilidades, paso M con pesos, medias y covarianzas, log-verosimilitud y convergencia.">
+<g class="in"><rect x="20" y="40" width="140" height="60" rx="5"/><text class="mid" x="90" y="64">X</text><text class="m mid" x="90" y="86">n × d, K</text></g>
+<g class="op"><rect x="200" y="40" width="180" height="60" rx="5"/><text class="mid" x="290" y="64">init</text><text class="s mid" x="290" y="84">k-means → μ, Σ, π</text></g>
+<path class="e fw" d="M160 70H196"/>
+<rect class="grp" x="420" y="14" width="520" height="250" rx="6"/><text class="cap" x="432" y="34">EM</text>
+<g class="op"><rect x="440" y="48" width="230" height="96" rx="5"/><text class="mid" x="555" y="70">paso E: responsabilidades</text><text class="m mid" x="555" y="96">rᵢₖ = πₖ 𝒩(xᵢ|μₖ,Σₖ)</text><text class="m mid" x="555" y="116">/ Σⱼ πⱼ 𝒩(xᵢ|μⱼ,Σⱼ)</text><text class="s mid" x="555" y="136">matriz n × K, filas suman 1</text></g>
+<g class="op"><rect x="700" y="48" width="225" height="140" rx="5"/><text class="mid" x="812" y="70">paso M: promedios pesados</text><text class="m mid" x="812" y="96">Nₖ = Σᵢ rᵢₖ</text><text class="m mid" x="812" y="118">πₖ = Nₖ / n</text><text class="m mid" x="812" y="140">μₖ = Σᵢ rᵢₖ xᵢ / Nₖ</text><text class="m mid" x="812" y="162">Σₖ = Σᵢ rᵢₖ (xᵢ−μₖ)(xᵢ−μₖ)ᵀ / Nₖ</text><text class="s mid" x="812" y="180">+ reg_covar · I</text></g>
+<g class="dec"><rect x="440" y="180" width="230" height="64" rx="5"/><text class="m mid" x="555" y="204">ℓ = Σᵢ log Σₖ πₖ 𝒩(xᵢ|·)</text><text class="s mid" x="555" y="226">¿Δℓ &lt; tol?</text></g>
+<path class="e fw" d="M380 70H436"/><path class="e st" d="M670 96H696"/><path class="e st" d="M812 188V212H674"/><path class="e st" d="M440 212H428V120H436"/><text class="s c3 end" x="422" y="170">no</text>
+<g class="out"><rect x="440" y="300" width="230" height="80" rx="5"/><text class="mid" x="555" y="324">parámetros θ = {π, μ, Σ}</text><text class="s mid" x="555" y="344">etiquetas suaves r (n × K)</text><text class="s mid" x="555" y="362">densidad p(x) para cualquier x</text></g>
+<g class="dec"><rect x="700" y="300" width="225" height="80" rx="5"/><text class="mid" x="812" y="324">elegir K</text><text class="m mid" x="812" y="348">BIC = −2ℓ + p log n</text><text class="s mid" x="812" y="368">p = parámetros libres</text></g>
+<path class="e dec" d="M555 244V296"/><text class="s c4" x="563" y="276">sí</text><path class="e nt" d="M670 340H696"/>
+<text class="h" x="20" y="170">Detalles numéricos</text>
+<text class="s" x="20" y="192">E en espacio log: log rᵢₖ =</text>
+<text class="s" x="20" y="208">log πₖ + log 𝒩 − logsumexp.</text>
+<text class="s" x="20" y="230">Sin logsumexp: 𝒩 ≈ 0 en d alto</text>
+<text class="s" x="20" y="246">⇒ 0/0.</text>
+<text class="s" x="20" y="268">Σₖ singular si una gaussiana</text>
+<text class="s" x="20" y="284">colapsa a un punto: ℓ → ∞.</text>
+<text class="s" x="20" y="300">reg_covar (1e-6) lo evita.</text>
+<text class="s" x="20" y="330">Costo por iteración (full):</text>
+<text class="m" x="20" y="352">O(n · K · d²) + O(K · d³)</text>
+</svg></div><figcaption>K-Means = caso límite: Σₖ = εI con ε → 0 vuelve rᵢₖ duro (0 o 1) y M = media simple.</figcaption></figure>
+
+<h3>Paso a paso: una iteración de EM en 1D</h3>
+<p>Siete puntos: 1, 2, 3, 4, 6, 7, 8. K = 2. Init: π = (0.5, 0.5), μ = (2, 6), σ² = (1, 1).</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 580 340" role="img" aria-label="Dos gaussianas ponderadas sobre siete puntos; responsabilidades como barras apiladas; curvas antes y después de EM.">
+<path class="ln ink" d="M30 250H545"/>
+<text class="s mid" x="95" y="266">1</text><text class="s mid" x="150" y="266">2</text><text class="s mid" x="205" y="266">3</text><text class="s mid" x="260" y="266">4</text><text class="s mid" x="315" y="266">5</text><text class="s mid" x="370" y="266">6</text><text class="s mid" x="425" y="266">7</text><text class="s mid" x="480" y="266">8</text>
+<g data-step="1-3"><polyline class="s1" style="stroke-width:2" points="40,234 51,226 62,217 73,205 84,192 95,177 106,163 117,150 128,140 139,133 150,130 161,133 172,140 183,150 194,163 205,177 216,192 227,205 238,217 249,226 260,234 271,239 282,243 293,246 304,248 315,249 326,249 337,250"/><polyline class="s2" style="stroke-width:2" points="183,250 194,249 205,249 216,248 227,246 238,243 249,239 260,234 271,226 282,217 293,205 304,192 315,177 326,163 337,150 348,140 359,133 370,130 381,133 392,140 403,150 414,163 425,177 436,192 447,205 458,217 469,226 480,234 491,239 502,243 513,246 524,248 535,249"/></g>
+<g data-step="4"><polyline class="s1" style="stroke-width:2.5" points="40,240 51,235 62,228 73,219 84,209 95,197 106,183 117,170 128,157 139,147 150,139 161,135 172,135 183,140 194,148 205,159 216,172 227,186 238,199 249,211 260,221 271,229 282,236 293,241 304,244 315,246 326,248 337,249 348,249 359,250"/><polyline class="s2" style="stroke-width:2.5" points="161,250 172,249 183,249 194,248 205,248 216,246 227,245 238,243 249,240 260,236 271,232 282,226 293,220 304,212 315,204 326,196 337,188 348,180 359,172 370,166 381,162 392,159 403,159 414,160 425,164 436,169 447,176 458,183 469,192 480,200 491,208 502,216 513,223 524,229 535,234"/></g>
+<g data-step="5-6"><polyline class="s1" style="stroke-width:2.5" points="40,239 51,235 62,228 73,221 84,211 95,200 106,188 117,175 128,163 139,151 150,141 161,134 172,130 183,130 194,133 205,140 216,149 227,161 238,173 249,186 260,198 271,209 282,219 293,227 304,234 315,239 326,242 337,245 348,247 359,248 370,249 381,249 392,250"/><polyline class="s2" style="stroke-width:2.5" points="271,250 282,249 293,248 304,247 315,244 326,239 337,232 348,221 359,208 370,191 381,173 392,155 403,140 414,129 425,126 436,129 447,139 458,155 469,172 480,191 491,207 502,221 513,231 524,239 535,244"/></g>
+<g class="fa"><circle cx="95" cy="250" r="6"/><circle cx="150" cy="250" r="6"/><circle cx="205" cy="250" r="6"/><circle cx="260" cy="250" r="6"/><circle cx="370" cy="250" r="6"/><circle cx="425" cy="250" r="6"/><circle cx="480" cy="250" r="6"/></g>
+<g data-step="2-3" class="once"><g class="f1"><rect x="87" y="280" width="16" height="40"/><rect x="142" y="280" width="16" height="40"/><rect x="197" y="280" width="16" height="39.3"/><rect x="252" y="280" width="16" height="20"/></g><g class="f2"><rect x="197" y="319.3" width="16" height="0.7"/><rect x="252" y="300" width="16" height="20"/><rect x="362" y="280" width="16" height="40"/><rect x="417" y="280" width="16" height="40"/><rect x="472" y="280" width="16" height="40"/></g>
+<text class="s" x="290" y="296">x = 4: r = (0.5, 0.5)</text><text class="s" x="290" y="312">equidistante: se reparte</text></g>
+<g data-step="1" class="once"><text class="s c1" x="110" y="118">π₁𝒩(2, 1)</text><text class="s c2" x="340" y="118">π₂𝒩(6, 1)</text></g>
+<g data-step="3" class="once"><text class="sm" x="40" y="40">N = (3.482, 3.518)</text><text class="sm" x="40" y="60">μ₁ = 7.947 / 3.482 = 2.282</text><text class="sm" x="40" y="80">μ₂ = 23.053 / 3.518 = 6.553</text></g>
+<g data-step="4-6"><text class="h" x="400" y="40">log-verosimilitud ℓ</text></g>
+<g data-step="4-6"><text class="sm" x="400" y="62">−16.07 → −15.00</text></g>
+<g data-step="5-6"><text class="sm ac" x="400" y="82">… → −14.53 (10 it.)</text></g>
+<g data-step="6"><path class="ln dash ink" d="M315 100V250"/><text class="sm" x="40" y="40">x = 5 nuevo</text><text class="sm" x="40" y="60">r = (0.64, 0.36)</text><text class="s" x="40" y="80">más cerca de 7 pero σ₂² chica</text><text class="s" x="40" y="96">y π₁ mayor: gana componente 1</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Init</b><span class="eq">π = (0.5, 0.5),  μ = (2, 6),  σ² = (1, 1)</span><p>Curvas = πₖ·𝒩(x|μₖ, σₖ²). Su suma es la densidad del modelo.</p></li>
+<li><b class="t">2 · Paso E</b><span class="eq">r₁ = (1, 0.9997, 0.982, 0.5, 0.0003, 0, 0)</span><span class="eq">r₂ = 1 − r₁</span><p>Barra = cuánto “pertenece” cada punto a cada gaussiana. x = 4 queda a medias.</p></li>
+<li><b class="t">3 · Paso M: pesos y medias</b><span class="eq">N = Σ r = (3.482, 3.518)  →  π = (0.497, 0.503)</span><span class="eq">μ = Σ r x / N = (2.282, 6.553)</span><p>Media pesada: x = 4 aporta medio punto a cada media.</p></li>
+<li><b class="t">4 · Paso M: varianzas</b><span class="eq">σ² = Σ r (x − μ)² / N = (1.065, 1.732)</span><span class="eq">ℓ: −16.07 → −15.00</span><p>σ₂² crece: la gaussiana 2 se ensancha para cubrir 4 y 8.</p></li>
+<li><b class="t">5 · Iterar hasta converger</b><span class="eq">π = (0.574, 0.426),  μ = (2.52, 7.00),  σ² = (1.30, 0.67)</span><p>ℓ = −14.53 en ~10 iteraciones. Mismo resultado que <code>sklearn GaussianMixture</code>.</p></li>
+<li><b class="t">6 · Usar el modelo</b><span class="eq">x = 5  →  r = (0.64, 0.36)</span><p>Asignación suave con incertidumbre. log p(5) también sirve como score de anomalía.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Tipos de covarianza: forma vs parámetros</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 230" role="img" aria-label="Cuatro tipos de covarianza en sklearn: spherical, diag, tied y full, con número de parámetros.">
+<g transform="translate(20 0)"><rect class="cell" x="0" y="10" width="210" height="150" rx="6"/><circle class="soft1" cx="70" cy="70" r="30" style="stroke:var(--c1)"/><circle class="soft2" cx="150" cy="110" r="22" style="stroke:var(--c2)"/><text class="h mid" x="105" y="184">spherical</text><text class="m mid" x="105" y="204">σₖ² I · K parámetros</text><text class="s mid" x="105" y="222">círculos, tamaño libre</text></g>
+<g transform="translate(260 0)"><rect class="cell" x="0" y="10" width="210" height="150" rx="6"/><ellipse class="soft1" cx="70" cy="70" rx="45" ry="20" style="stroke:var(--c1)"/><ellipse class="soft2" cx="150" cy="110" rx="18" ry="35" style="stroke:var(--c2)"/><text class="h mid" x="105" y="184">diag</text><text class="m mid" x="105" y="204">K · d</text><text class="s mid" x="105" y="222">elipses alineadas a ejes</text></g>
+<g transform="translate(500 0)"><rect class="cell" x="0" y="10" width="210" height="150" rx="6"/><ellipse class="soft1" cx="70" cy="65" rx="45" ry="18" transform="rotate(-30 70 65)" style="stroke:var(--c1)"/><ellipse class="soft2" cx="145" cy="115" rx="45" ry="18" transform="rotate(-30 145 115)" style="stroke:var(--c2)"/><text class="h mid" x="105" y="184">tied</text><text class="m mid" x="105" y="204">d(d+1)/2 compartidos</text><text class="s mid" x="105" y="222">misma forma ⇒ frontera lineal</text></g>
+<g transform="translate(740 0)"><rect class="cell" x="0" y="10" width="200" height="150" rx="6"/><ellipse class="soft1" cx="70" cy="65" rx="48" ry="16" transform="rotate(-35 70 65)" style="stroke:var(--c1)"/><ellipse class="soft2" cx="140" cy="112" rx="40" ry="22" transform="rotate(40 140 112)" style="stroke:var(--c2)"/><text class="h mid" x="100" y="184">full</text><text class="m mid" x="100" y="204">K · d(d+1)/2</text><text class="s mid" x="100" y="222">d = 100, K = 10: 50 500</text></g>
+</svg></div><figcaption>Más parámetros = más flexible y más datos necesarios. BIC penaliza p·log n para elegir tipo y K juntos.</figcaption></figure>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Modelo</dt><dd>p(x) = Σₖ πₖ 𝒩(x | μₖ, Σₖ),   Σₖ πₖ = 1</dd></div>
+<div class="row"><dt>Gaussiana</dt><dd>log 𝒩(x|μ,Σ) = −½[d log 2π + log|Σ| + (x−μ)ᵀΣ⁻¹(x−μ)]   (Cholesky, no inversa)</dd></div>
+<div class="row"><dt>Paso E</dt><dd>rᵢₖ = p(zᵢ = k | xᵢ, θ) = πₖ𝒩(xᵢ|μₖ,Σₖ) / Σⱼ πⱼ𝒩(xᵢ|μⱼ,Σⱼ)</dd></div>
+<div class="row"><dt>Paso M</dt><dd>argmax<sub>θ</sub> Σᵢ Σₖ rᵢₖ log[πₖ 𝒩(xᵢ|μₖ,Σₖ)]   ⇒ promedios pesados del mapa</dd></div>
+<div class="row"><dt>Monotonía</dt><dd>ℓ(θ) ≥ Σᵢ Σₖ rᵢₖ log(πₖ𝒩/rᵢₖ) (Jensen); E hace la cota exacta, M la sube ⇒ ℓ<sup>(t+1)</sup> ≥ ℓ<sup>(t)</sup></dd></div>
+<div class="row"><dt>BIC</dt><dd>BIC = −2ℓ + p log n;   elegir K y tipo con BIC mínimo</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 290" role="img" aria-label="GMM ajustado sobre datos normales, umbral sobre log-densidad, scoring online de anomalías.">
+<rect class="lane" x="4" y="6" width="952" height="120" rx="6"/><text class="cap" x="16" y="26">offline · aprender lo normal</text>
+<g class="in"><rect x="20" y="42" width="170" height="60" rx="5"/><text class="mid" x="105" y="66">telemetría normal</text><text class="s mid" x="105" y="84">sensores, sesiones</text></g>
+<g class="hot"><rect x="220" y="42" width="200" height="60" rx="5"/><text class="h mid" x="320" y="66">GaussianMixture</text><text class="s mid" x="320" y="84">K y tipo por BIC</text></g>
+<g class="dec"><rect x="450" y="42" width="210" height="60" rx="5"/><text class="m mid" x="555" y="66">τ = percentil 1 de log p</text><text class="s mid" x="555" y="84">en validación normal</text></g>
+<g class="st"><rect x="690" y="42" width="250" height="60" rx="5"/><text class="mid" x="815" y="66">artefacto: π, μ, Cholesky(Σ), τ</text><text class="s mid" x="815" y="84">K · d² floats</text></g>
+<path class="e fw" d="M190 72H216"/><path class="e dec" d="M420 72H446"/><path class="e st" d="M660 72H686"/>
+<rect class="lane" x="4" y="138" width="952" height="146" rx="6"/><text class="cap" x="16" y="158">online · por evento</text>
+<g class="in"><rect x="20" y="180" width="140" height="56" rx="5"/><text class="mid" x="90" y="204">x evento</text></g>
+<g class="hot"><rect x="190" y="180" width="220" height="56" rx="5"/><text class="m mid" x="300" y="204">log p(x) = logsumexp</text><text class="s mid" x="300" y="222">O(K · d²) · µs</text></g>
+<g class="dec"><rect x="440" y="180" width="160" height="56" rx="5"/><text class="m mid" x="520" y="204">log p &lt; τ ?</text><text class="s mid" x="520" y="222">alerta</text></g>
+<g class="out"><rect x="630" y="180" width="310" height="56" rx="5"/><text class="mid" x="785" y="204">alerta + componente más cercano</text><text class="s mid" x="785" y="222">“parecido al modo k pero 4σ fuera”</text></g>
+<path class="e fw" d="M160 208H186"/><path class="e fw" d="M410 208H436"/><path class="e dec" d="M600 208H626"/>
+<path class="e st" d="M815 102V130H300V176"/>
+<text class="s" x="20" y="268">Tasa de alertas esperada = 1 % por construcción. Si sube sin incidentes: drift, recalibrar τ o re-entrenar.</text>
+</svg></div><figcaption>Ventaja sobre K-Means: densidad calibrable (umbral en percentiles) y pertenencia suave.</figcaption></figure>
+<dl class="kv">
+<dt>Usos</dt><dd>Anomalías multimodales (varios regímenes normales), segmentación suave, modelado de densidad para muestreo, clustering de colores/sonido.</dd>
+<dt>Monitorear</dt><dd>Tasa de alertas vs 1 % esperado; πₖ estimado en ventana reciente vs train (cambio de mezcla de regímenes).</dd>
+<dt>Re-entrenar</dt><dd>Warm start desde parámetros previos (<code>warm_start=True</code>) converge en pocas iteraciones.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>Mínimos locales: usar <code>n_init</code> &gt; 1 y init por k-means.</li>
+<li>d alto con covarianza full: d² parámetros por componente y Σ casi singular. Reducir con PCA o usar diag.</li>
+<li>Comparar ℓ entre K distintos sin penalizar: siempre gana K mayor. Usar BIC.</li>
+<li>Datos no gaussianos (colas pesadas, discretos): componentes extra modelan la cola, no grupos reales.</li>
+</ul>

@@ -1,0 +1,134 @@
+<p class="lead">Regularizar = sumar costo por tamaño de pesos. Modelo prefiere soluciones simples. L2 encoge todo proporcional. L1 resta constante y deja pesos en cero exacto: selecciona features.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 330" role="img" aria-label="Gradiente de la pérdida de datos más el término de penalización: rama L2 multiplica, rama L1 aplica umbral suave.">
+<g class="in"><rect x="20" y="40" width="130" height="50" rx="5"/><text class="m mid" x="85" y="62">θₜ</text><text class="s mid" x="85" y="80">pesos (no sesgo)</text></g>
+<g class="in"><rect x="20" y="140" width="130" height="50" rx="5"/><text class="m mid" x="85" y="162">X, y</text><text class="s mid" x="85" y="180">batch</text></g>
+<g class="op"><rect x="200" y="90" width="190" height="60" rx="5"/><text class="m mid" x="295" y="116">g = ∇L_datos(θ)</text><text class="s mid" x="295" y="135">backprop / fórmula cerrada</text></g>
+<path class="e fw" d="M150 65H175V110H196"/><path class="e fw" d="M150 165H175V130H196"/>
+<g class="op"><rect x="430" y="90" width="160" height="60" rx="5"/><text class="m mid" x="510" y="116">z = θ − η g</text><text class="s mid" x="510" y="135">paso de datos</text></g>
+<path class="e fw" d="M390 120H426"/>
+
+<rect class="lane" x="620" y="10" width="330" height="140" rx="6"/><text class="cap" x="632" y="30">L2 · ridge · weight decay</text>
+<g class="op"><rect x="640" y="44" width="290" height="56" rx="5"/><text class="m mid" x="785" y="68">θ ← (1 − ηλ) θ − η g</text><text class="s mid" x="785" y="88">multiplica: encoge proporcional</text></g>
+<g class="out"><rect x="640" y="108" width="290" height="34" rx="5"/><text class="s mid" x="785" y="130">pesos chicos, nunca cero exacto</text></g>
+<rect class="lane" x="620" y="166" width="330" height="156" rx="6"/><text class="cap" x="632" y="186">L1 · lasso · proximal</text>
+<g class="op"><rect x="640" y="198" width="290" height="62" rx="5"/><text class="m mid" x="785" y="222">θ ← sign(z) · max(|z| − ηλ, 0)</text><text class="s mid" x="785" y="244">soft-threshold: resta constante</text></g>
+<g class="out"><rect x="640" y="270" width="290" height="40" rx="5"/><text class="s mid" x="785" y="294">|z| ≤ ηλ → 0 exacto → feature eliminada</text></g>
+<path class="e fw" d="M590 110H610V72H636"/><path class="e fw" d="M590 130H610V229H636"/>
+<path class="e st" d="M85 40V22H900V40"/><text class="s c3" x="400" y="18">θ también entra a la rama L2 (decay)</text>
+<text class="sm" x="200" y="210">Objetivo:  J(θ) = L_datos(θ) + λ · R(θ)</text>
+<text class="sm" x="200" y="236">L2: R = ½‖θ‖²  →  ∇R = θ</text>
+<text class="sm" x="200" y="262">L1: R = ‖θ‖₁  →  ∂R = sign(θ), no derivable en 0</text>
+<text class="s" x="200" y="290">L1 no derivable en 0: subgradiente oscila alrededor de 0.</text>
+<text class="s" x="200" y="306">Paso proximal resuelve exacto y deja ceros reales.</text>
+</svg></div><figcaption>Mismo paso de datos, dos formas de penalizar. L2 actúa como factor; L1 como umbral.</figcaption></figure>
+
+<h3>Paso a paso: un paso con L2 y con L1</h3>
+<p>Tres pesos θ = (0.8, −0.05, 0.3), gradiente de datos <i>g</i> = (0.2, 0.1, −0.4), η = 0.5, λ = 0.2 ⇒ ηλ = 0.1.</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 560 330" role="img" aria-label="Barras de tres pesos: original, tras paso de datos, tras L2, tras L1.">
+<text class="s" x="20" y="22">■</text><text class="s" x="32" y="22">θ</text><text class="s c1" x="70" y="22">■ z = θ − ηg</text><text class="s c3" x="180" y="22">■ L2</text><text class="s c4" x="240" y="22">■ L1</text>
+<path class="ln ink" d="M60 230H530"/><text class="s end" x="54" y="234">0</text><text class="s end" x="54" y="74">0.8</text><path class="ln dash" d="M60 70H530"/>
+<text class="m mid" x="152" y="300">θ₁</text><text class="m mid" x="312" y="300">θ₂</text><text class="m mid" x="472" y="300">θ₃</text>
+<g data-step="1-5"><rect class="fi" x="92" y="70" width="20" height="160"/><rect class="fi" x="252" y="230" width="20" height="10"/><rect class="fi" x="412" y="170" width="20" height="60"/></g>
+<g data-step="2-5"><rect class="f1" x="116" y="90" width="20" height="140"/><rect class="f1" x="276" y="230" width="20" height="20"/><rect class="f1" x="436" y="130" width="20" height="100"/></g>
+<g data-step="3-5"><rect class="f3" x="140" y="106" width="20" height="124"/><rect class="f3" x="300" y="230" width="20" height="19"/><rect class="f3" x="460" y="136" width="20" height="94"/></g>
+<g data-step="4-5"><rect class="soft4" x="60" y="210" width="470" height="40" style="opacity:.6"/><text class="s c4" x="526" y="206" style="text-anchor:end">zona muerta ±ηλ = ±0.1</text>
+<rect class="f4" x="164" y="110" width="20" height="120"/><path class="s4" d="M320 230H344" style="stroke-width:3"/><rect class="f4" x="484" y="150" width="20" height="80"/><text class="s c4 mid" x="334" y="268">0 exacto</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Pesos iniciales</b><span class="eq">θ = (0.8, −0.05, 0.3)</span><p>θ₂ casi nulo: feature poco útil.</p></li>
+<li><b class="t">2 · Paso de datos</b><span class="eq">z = θ − 0.5·(0.2, 0.1, −0.4) = (0.7, −0.1, 0.5)</span><p>Sin regularización, esto sería el nuevo θ.</p></li>
+<li><b class="t">3 · L2: weight decay</b><span class="eq">θ = 0.9·θ − η g = (0.72 − 0.1, −0.045 − 0.05, 0.27 + 0.2)</span><span class="eq">= (0.62, −0.095, 0.47)</span><p>Factor 0.9 sobre θ: θ₁ pierde 0.08, θ₂ sólo 0.005. Peso grande paga más. θ₂ sigue vivo.</p></li>
+<li><b class="t">4 · L1: soft-threshold sobre z</b><span class="eq">θ = sign(z)·max(|z| − 0.1, 0) = (0.6, 0, 0.4)</span><p>Resta 0.1 a todos. |−0.1| ≤ 0.1 ⇒ θ₂ = 0 exacto.</p></li>
+<li><b class="t">5 · Lectura</b><p>L2: todos sobreviven, más chicos. Útil con features correlacionadas: reparte peso.</p><p>L1: pesos chicos mueren. Modelo disperso: menos features que calcular en producción.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Geometría: por qué L1 da ceros</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 400" role="img" aria-label="Curvas de nivel de la pérdida tocando el rombo L1 en una esquina y el círculo L2 en un punto fuera del eje.">
+<g transform="translate(0 0)">
+<text class="cap" x="20" y="24">L1: ‖θ‖₁ ≤ 1 (rombo)</text>
+<path class="ln" d="M60 280H360M200 120V380"/><text class="s" x="364" y="284">θ₁</text><text class="s" x="206" y="128">θ₂</text>
+<path class="soft4" d="M200 180L300 280L200 380L100 280Z" style="stroke:var(--c4);stroke-width:1.5"/>
+<g transform="translate(290 110) rotate(-30)" class="si" style="stroke:var(--rule)"><ellipse rx="54.8" ry="27.4"/><ellipse rx="83.7" ry="41.8"/></g>
+<g transform="translate(290 110) rotate(-30)"><ellipse class="s2" rx="117.2" ry="58.6"/></g>
+<circle class="fi" cx="290" cy="110" r="4"/><text class="s" x="298" y="106">mínimo sin restricción</text>
+<circle class="fa" cx="200" cy="180" r="6"/><text class="s ac" x="128" y="172">θ* = (0, 1)</text>
+<text class="s" x="40" y="396">Contorno toca primero una esquina: θ₁ = 0.</text>
+</g>
+<g transform="translate(480 0)">
+<text class="cap" x="20" y="24">L2: ‖θ‖₂ ≤ 1 (círculo)</text>
+<path class="ln" d="M60 280H360M200 120V380"/><text class="s" x="364" y="284">θ₁</text><text class="s" x="206" y="128">θ₂</text>
+<circle class="soft3" cx="200" cy="280" r="100" style="stroke:var(--c3);stroke-width:1.5"/>
+<g transform="translate(290 110) rotate(-30)" class="si" style="stroke:var(--rule)"><ellipse rx="54.8" ry="27.4"/><ellipse rx="83.7" ry="41.8"/></g>
+<g transform="translate(290 110) rotate(-30)"><ellipse class="s2" rx="111.1" ry="55.5"/></g>
+<circle class="fi" cx="290" cy="110" r="4"/>
+<circle class="fa" cx="219.9" cy="182" r="6"/><text class="s ac" x="228" y="200">θ* = (0.20, 0.98)</text>
+<text class="s" x="40" y="396">Círculo sin esquinas: toca fuera del eje, ambos ≠ 0.</text>
+</g>
+</svg></div><figcaption>Elipses = curvas de nivel de la pérdida de datos. Solución = primer contacto con la región permitida. Puntos calculados numéricamente.</figcaption></figure>
+
+<div class="cols"><div>
+<h4>Operador proximal: salida vs entrada</h4>
+<figure class="dgm fit" style="margin-bottom:0"><div class="scroll"><svg viewBox="0 0 460 260" role="img" aria-label="Soft-threshold de L1 y encogimiento de L2 comparados con la identidad.">
+<path class="ln" d="M30 130H430M230 20V240"/><text class="s" x="434" y="134">z</text><text class="s" x="236" y="28">θ nuevo</text>
+<path class="ln dash ink" d="M130 230L330 30"/>
+<path class="s3" d="M90 200L370 60"/>
+<path class="sa" d="M90 230L190 130H270L370 30" style="stroke-width:2.5"/>
+<path class="soft4" d="M190 120H270V140H190Z"/>
+<text class="s" x="336" y="36">identidad</text><text class="s c3" x="372" y="74">L2: z/(1+ηλ)</text><text class="s ac" x="300" y="150">L1: S(z, ηλ)</text><text class="s c4 mid" x="230" y="176">−ηλ … ηλ → 0</text>
+</svg></div></figure>
+</div><div>
+<h4>Lectura bayesiana</h4>
+<dl class="kv">
+<dt>L2</dt><dd>Prior gaussiano θ ~ N(0, 1/λ). MAP = ridge. Creencia: muchos efectos pequeños.</dd>
+<dt>L1</dt><dd>Prior Laplace con pico en 0. MAP = lasso. Creencia: pocos efectos reales.</dd>
+<dt>Elastic net</dt><dd>λ(α‖θ‖₁ + (1−α)½‖θ‖²). Esparcidad de L1 + estabilidad de L2 con features correlacionadas.</dd>
+</dl>
+</div></div>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Ridge cerrado</dt><dd>θ* = (XᵀX + λI)⁻¹ Xᵀy   (λI hace invertible aunque d &gt; n)</dd></div>
+<div class="row"><dt>Ridge vía SVD</dt><dd>θ* = Σ<sub>j</sub> (s<sub>j</sub> / (s<sub>j</sub>² + λ)) u<sub>j</sub>ᵀy · v<sub>j</sub>   (encoge más las direcciones de poca varianza)</dd></div>
+<div class="row"><dt>Weight decay</dt><dd>θ ← θ − η(g + λθ) = (1 − ηλ)θ − ηg</dd></div>
+<div class="row"><dt>Proximal L1</dt><dd>prox<sub>ηλ‖·‖₁</sub>(z) = argmin<sub>θ</sub> ½‖θ − z‖² + ηλ‖θ‖₁ = sign(z)·max(|z| − ηλ, 0)</dd></div>
+<div class="row"><dt>Lasso, condición de cero</dt><dd>θ<sub>j</sub> = 0  ⇔  |x<sub>j</sub>ᵀ(y − Xθ)| / n ≤ λ   (correlación con residuo menor que λ)</dd></div>
+<div class="row"><dt>λ máximo útil</dt><dd>λ<sub>max</sub> = max<sub>j</sub> |x<sub>j</sub>ᵀy| / n   (por encima, todo θ = 0)</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 300" role="img" aria-label="Escalado, búsqueda de lambda con validación cruzada, reentrenamiento y serving con menos features.">
+<rect class="lane" x="4" y="6" width="952" height="150" rx="6"/><text class="cap" x="16" y="26">offline</text>
+<g class="op"><rect x="20" y="40" width="150" height="56" rx="5"/><text class="mid" x="95" y="64">StandardScaler</text><text class="s mid" x="95" y="82">fit sólo en train</text></g>
+<g class="op"><rect x="200" y="40" width="190" height="56" rx="5"/><text class="mid" x="295" y="64">grid λ ∈ 10⁻⁴ … 10²</text><text class="s mid" x="295" y="82">k-fold, jobs en paralelo</text></g>
+<g class="dec"><rect x="420" y="40" width="150" height="56" rx="5"/><text class="mid" x="495" y="64">λ con menor</text><text class="s mid" x="495" y="82">error de validación</text></g>
+<g class="hot"><rect x="600" y="40" width="160" height="56" rx="5"/><text class="h mid" x="680" y="64">refit con λ*</text><text class="s mid" x="680" y="82">todo train</text></g>
+<g class="st"><rect x="790" y="40" width="155" height="56" rx="5"/><text class="mid" x="867" y="64">artefacto</text><text class="s mid" x="867" y="82">scaler + θ disperso</text></g>
+<path class="e fw" d="M170 68H196"/><path class="e fw" d="M390 68H416"/><path class="e dec" d="M570 68H596"/><path class="e st" d="M760 68H786"/>
+<text class="s" x="200" y="124">Warm start: resolver λ de mayor a menor reusando θ previo (camino de regularización).</text>
+<text class="s" x="200" y="142">glmnet / sklearn LassoCV recorren 100 λ casi al costo de uno.</text>
+<rect class="lane" x="4" y="168" width="952" height="126" rx="6"/><text class="cap" x="16" y="188">online</text>
+<g class="in"><rect x="20" y="202" width="150" height="56" rx="5"/><text class="mid" x="95" y="226">request</text><text class="s mid" x="95" y="244">id de entidad</text></g>
+<g class="op"><rect x="200" y="202" width="230" height="56" rx="5"/><text class="mid" x="315" y="226">feature store</text><text class="s mid" x="315" y="244">sólo features con θⱼ ≠ 0</text></g>
+<g class="op"><rect x="460" y="202" width="180" height="56" rx="5"/><text class="m mid" x="550" y="226">ŷ = θᵀ scale(x)</text><text class="s mid" x="550" y="244">O(features activas)</text></g>
+<g class="out"><rect x="670" y="202" width="130" height="56" rx="5"/><text class="mid" x="735" y="226">score</text><text class="s mid" x="735" y="244">&lt; 1 ms</text></g>
+<path class="e fw" d="M170 230H196"/><path class="e fw" d="M430 230H456"/><path class="e fw" d="M640 230H666"/>
+<path class="e st" d="M867 96V160H550V198"/>
+<text class="s" x="820" y="226">L1 con 500 → 40</text><text class="s" x="820" y="244">features = 12× menos</text><text class="s" x="820" y="262">lookups y pipelines</text>
+</svg></div><figcaption>λ se elige offline con validación. En serving, la esparcidad de L1 recorta llamadas al feature store y latencia.</figcaption></figure>
+<dl class="kv">
+<dt>Escalar primero</dt><dd>Penalización depende de unidades. Feature en metros vs milímetros recibe penalización distinta. Estandarizar siempre antes de ridge/lasso.</dd>
+<dt>Redes neuronales</dt><dd>AdamW con λ ≈ 0.01–0.1, sin decay en sesgos ni LayerNorm. Otras regularizaciones: dropout, early stopping, data augmentation.</dd>
+<dt>Monitorear</dt><dd>Brecha train vs validación. Brecha grande: subir λ. Ambas altas: bajar λ o modelo más expresivo.</dd>
+<dt>Re-entrenar</dt><dd>Recalcular λ* cuando cambia mucho el volumen de datos: más datos ⇒ λ óptimo menor.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>Penalizar el sesgo (intercepto): desplaza predicciones hacia 0 sin motivo.</li>
+<li>Lasso con features muy correlacionadas elige una al azar y descarta las otras; inestable entre re-entrenamientos. Elastic net.</li>
+<li>Interpretar coeficientes de lasso como “importancia causal”: sólo dicen qué features bastan para predecir.</li>
+<li><code>C</code> en scikit-learn (LogisticRegression, SVC) = 1/λ: C grande = poca regularización.</li>
+</ul>

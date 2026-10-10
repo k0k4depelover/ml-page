@@ -1,0 +1,113 @@
+<p class="lead">Validación estima el error en datos futuros. Sólo funciona si el dato evaluado nunca influyó en nada de lo entrenado: ni en el modelo, ni en el escalado, ni en la selección de features, ni en los hiperparámetros. Fuga (leakage) = información del test que se filtra al fit. Síntoma: métrica excelente en validación, mediocre en producción.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 400" role="img" aria-label="Separación de test final, validación cruzada con pipeline completo dentro de cada fold, búsqueda de hiperparámetros, reentrenamiento y evaluación única en test.">
+<g class="in"><rect x="20" y="40" width="140" height="64" rx="5"/><text class="mid" x="90" y="64">dataset</text><text class="m mid" x="90" y="86">n filas</text></g>
+<g class="dec"><rect x="200" y="40" width="190" height="64" rx="5"/><text class="mid" x="295" y="64">split inicial</text><text class="s mid" x="295" y="84">por tiempo o grupo si aplica</text></g>
+<g class="st"><rect x="200" y="300" width="190" height="64" rx="5"/><text class="mid" x="295" y="324">test final (holdout)</text><text class="s mid" x="295" y="344">se toca UNA vez</text></g>
+<path class="e fw" d="M160 72H196"/><path class="e dec" d="M295 104V296"/><text class="s c4" x="302" y="200">20 %</text>
+<rect class="grp" x="430" y="14" width="510" height="260" rx="6"/><text class="cap" x="442" y="34">por cada candidato de hiperparámetros θ · por cada fold k = 1…K</text>
+<g class="in"><rect x="450" y="50" width="130" height="56" rx="5"/><text class="mid" x="515" y="74">train fold</text><text class="s mid" x="515" y="92">(K−1)/K filas</text></g>
+<g class="op"><rect x="610" y="44" width="310" height="70" rx="5"/><text class="mid" x="765" y="66">Pipeline.fit</text><text class="s mid" x="765" y="86">imputar → escalar → codificar → seleccionar</text><text class="s mid" x="765" y="102">→ modelo(θ). Todo aprende SÓLO de aquí</text></g>
+<g class="in"><rect x="450" y="140" width="130" height="56" rx="5"/><text class="mid" x="515" y="164">val fold</text><text class="s mid" x="515" y="182">n/K filas</text></g>
+<g class="op"><rect x="610" y="140" width="310" height="56" rx="5"/><text class="mid" x="765" y="164">Pipeline.predict → scoreₖ</text><text class="s mid" x="765" y="182">transformaciones con estadísticas del train fold</text></g>
+<g class="out"><rect x="610" y="214" width="310" height="48" rx="5"/><text class="m mid" x="765" y="244">CV(θ) = mediaₖ scoreₖ ± std</text></g>
+<path class="e fw" d="M580 78H606"/><path class="e fw" d="M580 168H606"/><path class="e st" d="M765 114V136"/><path class="e fw" d="M765 196V210"/>
+<path class="e fw" d="M390 72H446"/><text class="s" x="398" y="64">80 %</text>
+<g class="dec"><rect x="450" y="300" width="200" height="64" rx="5"/><text class="m mid" x="550" y="326">θ* = argmax CV(θ)</text><text class="s mid" x="550" y="346">grid / random / bayes</text></g>
+<g class="op"><rect x="690" y="300" width="250" height="64" rx="5"/><text class="mid" x="815" y="324">refit Pipeline(θ*) con todo el 80 %</text><text class="s mid" x="815" y="344">→ evaluar en test final → reportar</text></g>
+<path class="e dec" d="M610 238H550V296"/><path class="e fw" d="M650 332H686"/><path class="e st" d="M390 332H446" style="stroke-dasharray:4 3"/><text class="s c3" x="396" y="324">al final</text>
+</svg></div><figcaption>Dos niveles: CV elige θ; test final mide el sistema elegido. Si el test influye en cualquier decisión, deja de ser test.</figcaption></figure>
+
+<h3>Paso a paso: fuga por selección de features</h3>
+<p>100 filas, 10 000 features de ruido puro, etiqueta aleatoria. Ningún modelo puede superar 50 %.</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 580 360" role="img" aria-label="Rejilla de cinco folds, selector de features aplicado fuera o dentro de los folds y accuracy resultante.">
+<text class="s" x="40" y="30">fold k = fila de la rejilla</text>
+<g transform="translate(70 70)">
+<g class="soft1"><rect x="56" y="0" width="54" height="24"/><rect x="112" y="0" width="54" height="24"/><rect x="168" y="0" width="54" height="24"/><rect x="224" y="0" width="54" height="24"/>
+<rect x="0" y="34" width="54" height="24"/><rect x="112" y="34" width="54" height="24"/><rect x="168" y="34" width="54" height="24"/><rect x="224" y="34" width="54" height="24"/>
+<rect x="0" y="68" width="54" height="24"/><rect x="56" y="68" width="54" height="24"/><rect x="168" y="68" width="54" height="24"/><rect x="224" y="68" width="54" height="24"/>
+<rect x="0" y="102" width="54" height="24"/><rect x="56" y="102" width="54" height="24"/><rect x="112" y="102" width="54" height="24"/><rect x="224" y="102" width="54" height="24"/>
+<rect x="0" y="136" width="54" height="24"/><rect x="56" y="136" width="54" height="24"/><rect x="112" y="136" width="54" height="24"/><rect x="168" y="136" width="54" height="24"/></g>
+<g class="f2"><rect x="0" y="0" width="54" height="24"/><rect x="56" y="34" width="54" height="24"/><rect x="112" y="68" width="54" height="24"/><rect x="168" y="102" width="54" height="24"/><rect x="224" y="136" width="54" height="24"/></g>
+<text class="s end" x="-14" y="16">1</text><text class="s end" x="-14" y="50">2</text><text class="s end" x="-14" y="84">3</text><text class="s end" x="-14" y="118">4</text><text class="s end" x="-14" y="152">5</text>
+</g>
+<g data-step="2-3" class="once"><rect x="62" y="44" width="294" height="204" rx="6" style="fill:none;stroke:var(--c2);stroke-width:3;stroke-dasharray:6 4"/><text class="sm c2" x="62" y="270">SelectKBest(X completo, y) antes del CV</text><text class="s c2" x="62" y="288">el selector vio las filas naranjas de cada fold</text></g>
+<g data-step="4-5"><g class="sa" style="stroke-width:2.5;fill:none"><rect x="65" y="134" width="120" height="32" rx="4"/><rect x="233" y="134" width="120" height="32" rx="4"/></g><text class="sm ac" x="62" y="270">Pipeline: selector re-ajustado en cada fold</text><text class="s ac" x="62" y="288">fold 3: ve sólo las 80 filas azules (borde)</text></g>
+<text class="h" x="380" y="30">accuracy por fold</text>
+<g data-step="3" class="once"><g class="f2"><rect x="380" y="70" width="161.5" height="20"/><rect x="380" y="104" width="144.5" height="20"/><rect x="380" y="138" width="127.5" height="20"/><rect x="380" y="172" width="161.5" height="20"/><rect x="380" y="206" width="144.5" height="20"/></g>
+<text class="s" x="384" y="85" style="fill:var(--paper)">.95</text><text class="s" x="384" y="119" style="fill:var(--paper)">.85</text><text class="s" x="384" y="153" style="fill:var(--paper)">.75</text><text class="s" x="384" y="187" style="fill:var(--paper)">.95</text><text class="s" x="384" y="221" style="fill:var(--paper)">.85</text>
+<text class="h c2" x="380" y="320">media 0.87 · falso</text></g>
+<g data-step="5-6"><g class="f1"><rect x="380" y="70" width="93.5" height="20"/><rect x="380" y="104" width="102" height="20"/><rect x="380" y="138" width="68" height="20"/><rect x="380" y="172" width="59.5" height="20"/><rect x="380" y="206" width="76.5" height="20"/></g>
+<text class="s" x="384" y="85" style="fill:var(--paper)">.55</text><text class="s" x="384" y="119" style="fill:var(--paper)">.60</text><text class="s" x="384" y="153" style="fill:var(--paper)">.40</text><text class="s" x="384" y="187" style="fill:var(--paper)">.35</text><text class="s" x="384" y="221" style="fill:var(--paper)">.45</text>
+<text class="h c1" x="380" y="320">media 0.47 ± 0.09 · azar</text></g>
+<path class="ln dash ink" d="M465 60V236"/><text class="s mid" x="465" y="252">0.5</text>
+<g data-step="6"><text class="s" x="62" y="320">Regla: todo lo que hace .fit()</text><text class="s" x="62" y="336">va dentro del Pipeline.</text></g>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · K-fold</b><span class="eq">5 × 20 filas; cada fold valida una vez</span><p>Naranja = validación del fold. Azul = entrenamiento (80 filas).</p></li>
+<li><b class="t">2 · Error: seleccionar primero</b><span class="eq">SelectKBest(k = 20).fit(X, y)</span><span class="eq">con las 100 filas</span><p>Con 10 000 features de ruido, 20 se correlacionan con y por azar, también en las filas de validación.</p></li>
+<li><b class="t">3 · CV reporta 0.87</b><span class="eq">folds: .95, .85, .75, .95, .85</span><p>Mentira: el selector ya eligió features que “explican” las filas de validación.</p></li>
+<li><b class="t">4 · Correcto: Pipeline</b><span class="eq">make_pipeline(SelectKBest(k=20),</span><span class="eq">  LogisticRegression())</span><p>cross_val_score re-ajusta selector y modelo dentro de cada fold.</p></li>
+<li><b class="t">5 · CV reporta 0.47</b><span class="eq">folds: .55, .60, .40, .35, .45</span><span class="eq">media 0.47 ± 0.09</span><p>Verdad: ruido. Diferencia 0.40 sólo por el orden de dos líneas de código.</p></li>
+<li><b class="t">6 · Regla general</b><span class="eq">scaler, imputer, encoder,</span><span class="eq">selector, PCA, SMOTE ⊂ Pipeline</span><p>Mismo objeto Pipeline se serializa y sirve en producción.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Elegir el esquema de split</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 250" role="img" aria-label="Cuatro esquemas: KFold estratificado, GroupKFold, TimeSeriesSplit y split temporal con hueco.">
+<g transform="translate(20 20)"><text class="h" x="0" y="0">StratifiedKFold</text><text class="s" x="0" y="18">i.i.d.; misma tasa de clase</text>
+<g class="soft1"><rect x="0" y="34" width="200" height="16"/><rect x="0" y="56" width="200" height="16"/><rect x="0" y="78" width="200" height="16"/></g><g class="f2"><rect x="0" y="34" width="66" height="16"/><rect x="67" y="56" width="66" height="16"/><rect x="134" y="78" width="66" height="16"/></g>
+<text class="s" x="0" y="122">cada fold: 30 % positivos</text><text class="s" x="0" y="138">si el total es 30 %</text></g>
+<g transform="translate(260 20)"><text class="h" x="0" y="0">GroupKFold</text><text class="s" x="0" y="18">varias filas por cliente/paciente</text>
+<g class="soft1"><rect x="0" y="34" width="200" height="16"/><rect x="0" y="56" width="200" height="16"/><rect x="0" y="78" width="200" height="16"/></g><g class="f2"><rect x="0" y="34" width="66" height="16"/><rect x="67" y="56" width="66" height="16"/><rect x="134" y="78" width="66" height="16"/></g>
+<path class="ln ink" d="M22 34V94M44 34V94M88 34V94M110 34V94M156 34V94M178 34V94" style="stroke-dasharray:2 2"/>
+<text class="s" x="0" y="122">un grupo nunca en train y</text><text class="s" x="0" y="138">validación a la vez</text></g>
+<g transform="translate(500 20)"><text class="h" x="0" y="0">TimeSeriesSplit</text><text class="s" x="0" y="18">pasado → futuro, ventana creciente</text>
+<g class="soft1"><rect x="0" y="34" width="80" height="16"/><rect x="0" y="56" width="120" height="16"/><rect x="0" y="78" width="160" height="16"/></g><g class="f2"><rect x="80" y="34" width="40" height="16"/><rect x="120" y="56" width="40" height="16"/><rect x="160" y="78" width="40" height="16"/></g>
+<path class="e nt" d="M0 106H200"/><text class="s" x="0" y="122">nunca entrenar con el futuro</text><text class="s" x="0" y="138">del bloque evaluado</text></g>
+<g transform="translate(740 20)"><text class="h" x="0" y="0">Temporal con hueco</text><text class="s" x="0" y="18">etiqueta tarda H días</text>
+<g class="soft1"><rect x="0" y="34" width="120" height="16"/></g><rect class="cell" x="120" y="34" width="30" height="16"/><g class="f2"><rect x="150" y="34" width="50" height="16"/></g>
+<text class="s mid" x="135" y="66">gap</text>
+<text class="s" x="0" y="96">gap ≥ horizonte de la etiqueta:</text><text class="s" x="0" y="112">“churn en 30 días” ⇒ 30 días</text><text class="s" x="0" y="128">de hueco, si no la ventana</text><text class="s" x="0" y="144">de etiqueta cruza el corte</text></g>
+<text class="s" x="20" y="200">Elegir el split que imite cómo llega el dato en producción: clientes nuevos ⇒ GroupKFold; predicción a futuro ⇒ temporal.</text>
+<text class="s" x="20" y="222">KFold aleatorio sobre datos temporales o agrupados = fuga silenciosa más común.</text>
+</svg></div><figcaption>Azul = entrenamiento, naranja = validación. Una fila por iteración.</figcaption></figure>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Estimador CV</dt><dd>CV = (1/K) Σₖ L(f<sub>−k</sub>, D<sub>k</sub>),   f<sub>−k</sub> = Pipeline ajustado sin el fold k</dd></div>
+<div class="row"><dt>Error estándar</dt><dd>SE ≈ std(score<sub>k</sub>) / √K   (folds correlacionados ⇒ subestima)</dd></div>
+<div class="row"><dt>Nested CV</dt><dd>CV exterior mide el procedimiento; CV interior elige θ en cada fold exterior</dd></div>
+<div class="row"><dt>Optimismo de selección</dt><dd>max<sub>θ</sub> CV(θ) es sesgado hacia arriba: más candidatos ⇒ más sesgo ⇒ test final separado</dd></div>
+<div class="row"><dt>Costo</dt><dd>K × |grid| fits;   5 folds × 50 combinaciones = 250 entrenamientos</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 300" role="img" aria-label="Fuentes de fuga en un pipeline de datos y controles: punto en el tiempo, pipeline serializado y backtest.">
+<rect class="lane" x="4" y="6" width="952" height="140" rx="6"/><text class="cap" x="16" y="26">fuentes de fuga en datos reales</text>
+<g class="bad"><rect x="20" y="42" width="220" height="86" rx="5"/><text class="mid" x="130" y="64">feature del futuro</text><text class="s mid" x="130" y="84">“nº de reclamos” incluye</text><text class="s mid" x="130" y="100">reclamos tras la fecha</text><text class="s mid" x="130" y="116">de predicción</text></g>
+<g class="bad"><rect x="255" y="42" width="220" height="86" rx="5"/><text class="mid" x="365" y="64">proxy de la etiqueta</text><text class="s mid" x="365" y="84">“fecha_cancelación” no nula</text><text class="s mid" x="365" y="100">⇒ churn = 1</text><text class="s mid" x="365" y="116">AUC 0.99 = sospechar</text></g>
+<g class="bad"><rect x="490" y="42" width="220" height="86" rx="5"/><text class="mid" x="600" y="64">duplicados / grupos</text><text class="s mid" x="600" y="84">misma imagen aumentada o</text><text class="s mid" x="600" y="100">mismo paciente en ambos</text><text class="s mid" x="600" y="116">lados del split</text></g>
+<g class="bad"><rect x="725" y="42" width="215" height="86" rx="5"/><text class="mid" x="832" y="64">preproceso global</text><text class="s mid" x="832" y="84">escalar, imputar o target</text><text class="s mid" x="832" y="100">encoding con todo el</text><text class="s mid" x="832" y="116">dataset antes del split</text></g>
+<rect class="lane" x="4" y="158" width="952" height="136" rx="6"/><text class="cap" x="16" y="178">control que la corta</text>
+<g class="op"><rect x="20" y="196" width="220" height="80" rx="5"/><text class="mid" x="130" y="220">point-in-time join</text><text class="s mid" x="130" y="240">feature store “as of” fecha:</text><text class="s mid" x="130" y="256">sólo lo conocido en ese momento</text></g>
+<g class="op"><rect x="255" y="196" width="220" height="80" rx="5"/><text class="mid" x="365" y="220">auditar features top</text><text class="s mid" x="365" y="240">¿cuándo se escribe la columna?</text><text class="s mid" x="365" y="256">quitar y re-medir</text></g>
+<g class="op"><rect x="490" y="196" width="220" height="80" rx="5"/><text class="mid" x="600" y="220">GroupKFold + dedup</text><text class="s mid" x="600" y="240">hash de contenido; split por</text><text class="s mid" x="600" y="256">paciente / cliente / sesión</text></g>
+<g class="hot"><rect x="725" y="196" width="215" height="80" rx="5"/><text class="h mid" x="832" y="220">Pipeline serializado</text><text class="s mid" x="832" y="240">mismo objeto en CV, test</text><text class="s mid" x="832" y="256">y serving: sin skew</text></g>
+<path class="e st" d="M130 128V192"/><path class="e st" d="M365 128V192"/><path class="e st" d="M600 128V192"/><path class="e st" d="M832 128V192"/>
+</svg></div><figcaption>Rojo = cómo se cuela la fuga. Debajo de cada una, su control.</figcaption></figure>
+<dl class="kv">
+<dt>Señal de alarma</dt><dd>Una feature con importancia enorme o un AUC demasiado alto. Auditar cómo y cuándo se calcula.</dd>
+<dt>Gap train → prod</dt><dd>Comparar métrica de CV con métrica en las primeras semanas en producción; diferencia grande = fuga o drift.</dd>
+<dt>Backtest</dt><dd>Re-entrenar como en producción, mes a mes, con ventana deslizante; comparar contra la métrica real de cada mes.</dd>
+<dt>Reproducibilidad</dt><dd>Fijar semillas de split, guardar índices de folds y versión de datos junto al modelo.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>SMOTE u oversampling antes del split: copias sintéticas de filas de validación terminan en train.</li>
+<li>Elegir hiperparámetros mirando el test y luego reportar ese test.</li>
+<li>Target encoding sin CV interno: la media del target incluye la fila propia.</li>
+<li>Shuffle en series de tiempo: el modelo interpola entre vecinos temporales y parece genio.</li>
+</ul>

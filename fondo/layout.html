@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>A fondo · Cuaderno de ML</title>
+<meta name="description" content="Los temas complejos del Cuaderno de ML explicados con diagramas de cálculo, ejemplos numéricos paso a paso y su lugar en un sistema real.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;600&family=STIX+Two+Text:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/deep.css">
+<script src="assets/theme.js"></script>
+</head>
+<body>
+<!-- GENERADO por tools/build_fondo.py desde fondo/. No editar a mano: editar fondo/ y reconstruir. -->
+<svg class="defs" aria-hidden="true" focusable="false"><defs>
+<marker id="ah-c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah c1" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ah-c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah c2" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ah-c3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah c3" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ah-c4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah c4" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ah-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah ink" d="M0 0L10 5L0 10z"/></marker>
+</defs></svg>
+<header class="topbar"><div class="in"><a class="brand" href="index.html">Cuaderno<span class="long"> de ML</span></a><nav aria-label="Secciones"><a href="index.html">Resumen</a><a href="a-fondo.html" aria-current="page">A fondo</a></nav><button class="btn" type="button" id="theme-btn" aria-label="Cambiar tema"><span aria-hidden="true">◐</span><span class="lbl"> Tema</span></button></div></header>
+<div class="shell">
+<nav class="index" aria-label="Índice de temas a fondo">
+{{NAV}}
+</nav>
+<main>
+<div class="mobile-nav"><label for="jump">Ir a<select id="jump"><option value="top">Inicio</option>{{SELECT}}</select></label></div>
+<header class="deep-hero" id="top">
+<h1>A fondo <span class="thin">cómo se calcula y dónde vive</span></h1>
+<p class="lede">El resumen dice qué hace cada algoritmo. Aquí se abre la caja: grafo de cálculo con formas de tensores, ejemplo numérico paso a paso, derivación de fórmulas y lugar exacto dentro de un sistema en producción.</p>
+<ul class="legend" aria-label="Convención de los diagramas">
+<li><span class="sw"></span>entrada</li>
+<li><span class="sw op"></span>operación</li>
+<li><span class="sw out"></span>salida</li>
+<li><span class="sw hot"></span>el algoritmo dentro del sistema</li>
+<li><svg viewBox="0 0 40 12" aria-hidden="true"><path d="M2 6h33" stroke="var(--c1)" stroke-width="2" marker-end="url(#ah-c1)"/></svg>forward / dato</li>
+<li><svg viewBox="0 0 40 12" aria-hidden="true"><path d="M2 6h33" stroke="var(--c2)" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ah-c2)"/></svg>gradiente / error</li>
+<li><svg viewBox="0 0 40 12" aria-hidden="true"><path d="M2 6h33" stroke="var(--c3)" stroke-width="2" marker-end="url(#ah-c3)"/></svg>estado persistido</li>
+<li><svg viewBox="0 0 40 12" aria-hidden="true"><path d="M2 6h33" stroke="var(--c4)" stroke-width="2" marker-end="url(#ah-c4)"/></svg>decisión / umbral</li>
+</ul>
+</header>
+{{SECTIONS}}
+<footer class="page">Ejemplos numéricos redondeados a 3–4 decimales; se recalcularon con NumPy. Notación: <i>n</i> muestras, <i>d</i> features, <i>K</i> clases o clusters, <i>B</i> tamaño de mini-batch.</footer>
+</main>
+</div>
+<script src="assets/deep.js" defer></script>
+</body>
+</html>

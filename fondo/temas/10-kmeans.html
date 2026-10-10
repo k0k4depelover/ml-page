@@ -1,0 +1,118 @@
+<p class="lead">K-Means alterna dos pasos baratos: asignar cada punto al centroide más cercano y mover cada centroide a la media de sus puntos. Cada paso baja la inercia J o la deja igual, así que converge. Pero sólo a un mínimo local: la inicialización decide.</p>
+
+<h3>Mapa del cálculo</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 380" role="img" aria-label="Inicialización k-means++, bucle de Lloyd con asignación y actualización, criterio de convergencia, reinicios y salida.">
+<g class="in"><rect x="20" y="40" width="140" height="60" rx="5"/><text class="mid" x="90" y="64">X</text><text class="m mid" x="90" y="86">n × d, k</text></g>
+<g class="op"><rect x="200" y="30" width="220" height="80" rx="5"/><text class="mid" x="310" y="54">init k-means++</text><text class="s mid" x="310" y="74">1º centro al azar; siguientes con</text><text class="m mid" x="310" y="96">P(x) ∝ D(x)²</text></g>
+<path class="e fw" d="M160 70H196"/>
+<rect class="grp" x="460" y="14" width="480" height="236" rx="6"/><text class="cap" x="472" y="34">bucle de Lloyd</text>
+<g class="op"><rect x="480" y="50" width="200" height="70" rx="5"/><text class="mid" x="580" y="72">asignar (E)</text><text class="m mid" x="580" y="96">aᵢ = argminⱼ ‖xᵢ − cⱼ‖²</text><text class="s mid" x="580" y="112">n × k distancias: O(nkd)</text></g>
+<g class="op"><rect x="720" y="50" width="200" height="70" rx="5"/><text class="mid" x="820" y="72">actualizar (M)</text><text class="m mid" x="820" y="96">cⱼ = media{xᵢ : aᵢ = j}</text><text class="s mid" x="820" y="112">O(nd)</text></g>
+<g class="dec"><rect x="600" y="160" width="200" height="60" rx="5"/><text class="mid" x="700" y="184">¿ΔJ &lt; tol o</text><text class="mid" x="700" y="204">asignaciones iguales?</text></g>
+<path class="e fw" d="M420 70H476"/><path class="e st" d="M680 85H716"/><path class="e st" d="M820 120V190H804"/><path class="e st" d="M600 190H580V124"/><text class="s c3" x="520" y="208">no</text>
+<g class="st"><rect x="480" y="290" width="200" height="70" rx="5"/><text class="mid" x="580" y="314">n_init reinicios</text><text class="s mid" x="580" y="334">semillas distintas</text><text class="s mid" x="580" y="350">quedarse con menor J</text></g>
+<g class="out"><rect x="720" y="290" width="220" height="70" rx="5"/><text class="mid" x="830" y="314">centroides C: k × d</text><text class="mid" x="830" y="334">etiquetas a: n</text><text class="m mid" x="830" y="352">J = Σᵢ ‖xᵢ − c(aᵢ)‖²</text></g>
+<path class="e dec" d="M700 220V260H580V286"/><text class="s c4" x="708" y="246">sí</text><path class="e fw" d="M680 325H716"/>
+<text class="h" x="20" y="170">Por qué converge</text>
+<text class="s" x="20" y="192">Asignar: cada punto elige su centro</text>
+<text class="s" x="20" y="208">más cercano ⇒ J no sube.</text>
+<text class="s" x="20" y="230">Actualizar: la media minimiza la</text>
+<text class="s" x="20" y="246">suma de cuadrados ⇒ J no sube.</text>
+<text class="s" x="20" y="268">Asignaciones finitas ⇒ termina.</text>
+<text class="h" x="20" y="306">Variantes</text>
+<text class="s" x="20" y="328">Mini-batch: actualiza con lotes de</text>
+<text class="s" x="20" y="344">1024 puntos. Elkan: desigualdad</text>
+<text class="s" x="20" y="360">triangular para saltar distancias.</text>
+</svg></div><figcaption>Es EM con varianzas iguales y asignación dura (tema siguiente). Costo total O(n·k·d·iteraciones).</figcaption></figure>
+
+<h3>Paso a paso: Lloyd con k = 2</h3>
+<p>Siete puntos A…G. Init con B y D (a propósito mala para ver un punto cambiar de cluster).</p>
+<div class="stepper dgm" tabindex="0"><div class="body"><div class="scroll"><svg viewBox="0 0 580 370" role="img" aria-label="Siete puntos, centroides que se mueven en tres iteraciones y frontera entre clusters.">
+<path class="ln ink" d="M40 350H340M40 350V20"/>
+<text class="s mid" x="90" y="364">1</text><text class="s mid" x="190" y="364">3</text><text class="s mid" x="290" y="364">5</text><text class="s end" x="34" y="264">2</text><text class="s end" x="34" y="174">4</text><text class="s end" x="34" y="84">6</text>
+<g data-step="2-3" class="once"><path class="ln dash ink" d="M40 45.1L340 234.1"/></g>
+<g data-step="4-5" class="once"><path class="ln dash ink" d="M40 75.6L340 279"/></g>
+<g data-step="6"><path class="ln dash ink" d="M40 116.2L340 314.9"/></g>
+<g class="cell"><circle class="pt" cx="90" cy="305" r="7"/><circle class="pt" cx="115" cy="260" r="7"/><circle class="pt" cx="190" cy="170" r="7"/><circle class="pt" cx="290" cy="35" r="7"/><circle class="pt" cx="215" cy="125" r="7"/><circle class="pt" cx="265" cy="125" r="7"/><circle class="pt" cx="215" cy="147.5" r="7"/></g>
+<g data-step="2-3"><g class="f1"><circle class="pt" cx="90" cy="305" r="7"/><circle class="pt" cx="115" cy="260" r="7"/><circle class="pt" cx="190" cy="170" r="7"/></g><g class="f2"><circle class="pt" cx="290" cy="35" r="7"/><circle class="pt" cx="215" cy="125" r="7"/><circle class="pt" cx="265" cy="125" r="7"/><circle class="pt" cx="215" cy="147.5" r="7"/></g></g>
+<g data-step="4-6"><g class="f1"><circle class="pt" cx="90" cy="305" r="7"/><circle class="pt" cx="115" cy="260" r="7"/></g><g class="f2"><circle class="pt" cx="190" cy="170" r="7"/><circle class="pt" cx="290" cy="35" r="7"/><circle class="pt" cx="215" cy="125" r="7"/><circle class="pt" cx="265" cy="125" r="7"/><circle class="pt" cx="215" cy="147.5" r="7"/></g></g>
+<text class="s" x="76" y="322">A</text><text class="s" x="98" y="277">B</text><text class="s" x="200" y="182">C</text><text class="s" x="300" y="40">D</text><text class="s" x="196" y="118">E</text><text class="s" x="276" y="120">F</text><text class="s" x="196" y="160">G</text>
+<g data-step="1-2"><g class="sa" style="stroke-width:3"><path d="M107 252L123 268M123 252L107 268"/><path d="M282 27L298 43M298 27L282 43"/></g></g>
+<g data-step="3-4"><path class="e nt" d="M115 260L129 247"/><path class="e nt" d="M290 35L248 105"/><g class="sa" style="stroke-width:3"><path d="M124 237L140 253M140 237L124 253"/><path d="M238 100L254 116M254 100L238 116"/></g></g>
+<g data-step="5-6"><path class="e nt" d="M131.7 245L105 279"/><path class="e nt" d="M246.3 108.1L237 117"/><g class="sa" style="stroke-width:3"><path d="M94 274L110 290M110 274L94 290"/><path d="M227 112L243 128M243 112L227 128"/></g></g>
+<text class="h" x="370" y="40">inercia J</text>
+<g data-step="2-6"><rect class="soft2" x="370" y="56" width="190" height="18"/><text class="s" x="374" y="70">26.5</text></g>
+<g data-step="4-6"><rect class="soft4" x="370" y="84" width="80.5" height="18"/><text class="s" x="374" y="98">11.23</text></g>
+<g data-step="6"><rect class="soft1" x="370" y="112" width="61" height="18"/><text class="s" x="374" y="126">8.525 · fin</text></g>
+<g data-step="2" class="once"><text class="s" x="370" y="180">C: d² a c₁ = 6.25</text><text class="s" x="370" y="196">C: d² a c₂ = 13</text><text class="s c1" x="370" y="214">→ cluster 1</text></g>
+<g data-step="4" class="once"><text class="s" x="370" y="180">C: d² a c₁ = 4.14</text><text class="s" x="370" y="196">C: d² a c₂ = 3.16</text><text class="s c2" x="370" y="214">→ cambia a cluster 2</text></g>
+<text class="s" x="370" y="260">✕ = centroide</text><text class="s" x="370" y="276">línea punteada = frontera</text><text class="s" x="370" y="292">(mediatriz entre centroides)</text>
+</svg></div>
+<ol class="panel">
+<li><b class="t">1 · Init</b><span class="eq">c₁ = B = (1.5, 2),   c₂ = D = (5, 7)</span><p>D está en un extremo: mal centro para el grupo de la derecha.</p></li>
+<li><b class="t">2 · Asignar</b><span class="eq">{A, B, C} → c₁,   {D, E, F, G} → c₂,   J = 26.5</span><p>Frontera = mediatriz entre centroides. Regiones = diagrama de Voronoi.</p></li>
+<li><b class="t">3 · Actualizar</b><span class="eq">c₁ = media(A, B, C) = (1.83, 2.33)</span><span class="eq">c₂ = media(D, E, F, G) = (4.13, 5.38)</span><p>c₂ baja hacia el grueso del grupo.</p></li>
+<li><b class="t">4 · Reasignar</b><span class="eq">C: 4.14 vs 3.16 → c₂,   J = 11.23</span><p>Un punto cambia de cluster: hay que seguir iterando.</p></li>
+<li><b class="t">5 · Actualizar</b><span class="eq">c₁ = (1.25, 1.5),   c₂ = (3.9, 5.1)</span></li>
+<li><b class="t">6 · Convergencia</b><span class="eq">asignaciones iguales  →  J = 8.525, fin</span><p>J: 26.5 → 11.23 → 8.525. Monótona. Con init A y E llega aquí en una sola iteración.</p></li>
+</ol></div>
+<div class="bar"><button class="btn prev" type="button">Anterior</button><button class="btn next" type="button">Siguiente</button><span class="count"></span></div></div>
+
+<h3>Inicialización y elección de k</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 280" role="img" aria-label="Probabilidades de k-means++ para el segundo centro y curva de inercia contra k.">
+<text class="h" x="20" y="24">k-means++: 2º centro si el 1º es B</text>
+<path class="ln ink" d="M40 220H440"/>
+<g class="f1"><rect x="55" y="214.2" width="36" height="5.8"/><rect x="109" y="220.0" width="36" height="0.0"/><rect x="163" y="190.9" width="36" height="29.1"/><rect x="217" y="46.8" width="36" height="173.2"/><rect x="271" y="159.5" width="36" height="60.5"/><rect x="325" y="136.3" width="36" height="83.7"/><rect x="379" y="172.3" width="36" height="47.7"/></g>
+<text class="s mid" x="73" y="238">A</text><text class="s mid" x="127" y="238">B</text><text class="s mid" x="181" y="238">C</text><text class="s mid" x="235" y="238">D</text><text class="s mid" x="289" y="238">E</text><text class="s mid" x="343" y="238">F</text><text class="s mid" x="397" y="238">G</text>
+<text class="s mid" x="73" y="208">.015</text><text class="s mid" x="127" y="214">0</text><text class="s mid" x="181" y="185">.073</text><text class="s mid" x="235" y="63" style="fill:var(--paper)">.433</text><text class="s mid" x="289" y="154">.151</text><text class="s mid" x="343" y="130">.209</text><text class="s mid" x="397" y="166">.119</text>
+<text class="s" x="40" y="262">P = D²/ΣD², ΣD² = 86. Lejos = probable. Evita centros juntos; garantía O(log k) del óptimo.</text>
+<text class="h" x="520" y="24">Inercia J vs k (mismos 7 puntos)</text>
+<path class="ln ink" d="M560 40V220H930"/>
+<text class="s end" x="554" y="44">37</text><text class="s end" x="554" y="224">0</text>
+<polyline class="s2" style="stroke-width:2.5" points="600,40 710,178.6 820,207.8 920,213.7"/>
+<g class="f2"><circle cx="600" cy="40" r="5"/><circle cx="710" cy="178.6" r="7"/><circle cx="820" cy="207.8" r="5"/><circle cx="920" cy="213.7" r="5"/></g>
+<text class="s mid" x="600" y="238">k=1</text><text class="s mid" x="710" y="238">2</text><text class="s mid" x="820" y="238">3</text><text class="s mid" x="920" y="238">4</text>
+<text class="s end" x="592" y="44">37.1</text><text class="s" x="718" y="168">8.5 ← codo</text><text class="s" x="808" y="196">2.5</text><text class="s end" x="930" y="200">1.3</text>
+<text class="s" x="560" y="262">J siempre baja con k (k = n ⇒ J = 0). Buscar codo o silhouette: k = 2 da 0.645.</text>
+</svg></div><figcaption>Izquierda: probabilidades exactas del sorteo. Derecha: inercia con mejor de 10 inicios por k.</figcaption></figure>
+
+<h3>Fórmulas clave</h3>
+<dl class="formulas">
+<div class="row"><dt>Objetivo</dt><dd>J(C, a) = Σᵢ ‖xᵢ − c<sub>aᵢ</sub>‖²   (NP-difícil global; Lloyd = descenso por coordenadas)</dd></div>
+<div class="row"><dt>Asignación</dt><dd>aᵢ = argminⱼ ‖xᵢ − cⱼ‖² = argminⱼ (‖cⱼ‖² − 2 xᵢ·cⱼ)   (matmul X Cᵀ en GPU)</dd></div>
+<div class="row"><dt>Actualización</dt><dd>cⱼ = (1/|Sⱼ|) Σ<sub>i∈Sⱼ</sub> xᵢ</dd></div>
+<div class="row"><dt>k-means++</dt><dd>P(x elegido) = D(x)² / Σ D(x')²,   D = distancia al centro ya elegido más cercano</dd></div>
+<div class="row"><dt>Silhouette</dt><dd>s(i) = (b − a) / max(a, b);  a = dist. media intra-cluster, b = al cluster vecino más cercano</dd></div>
+<div class="row"><dt>Mini-batch</dt><dd>cⱼ ← (1 − 1/nⱼ) cⱼ + (1/nⱼ) x,   nⱼ = conteo acumulado</dd></div>
+</dl>
+
+<h3>En un sistema real</h3>
+<figure class="dgm"><div class="scroll"><svg viewBox="0 0 960 300" role="img" aria-label="K-Means offline sobre features o embeddings, centroides guardados, asignación online a segmento o a lista de índice IVF.">
+<rect class="lane" x="4" y="6" width="952" height="120" rx="6"/><text class="cap" x="16" y="26">offline</text>
+<g class="in"><rect x="20" y="42" width="170" height="60" rx="5"/><text class="mid" x="105" y="66">clientes / embeddings</text><text class="s mid" x="105" y="84">escalados</text></g>
+<g class="hot"><rect x="220" y="42" width="220" height="60" rx="5"/><text class="h mid" x="330" y="66">MiniBatchKMeans</text><text class="s mid" x="330" y="84">k por negocio + silhouette</text></g>
+<g class="op"><rect x="470" y="42" width="190" height="60" rx="5"/><text class="mid" x="565" y="66">perfilar clusters</text><text class="s mid" x="565" y="84">medias por feature → nombres</text></g>
+<g class="st"><rect x="690" y="42" width="250" height="60" rx="5"/><text class="mid" x="815" y="66">artefacto: C (k × d) + escala</text><text class="s mid" x="815" y="84">k = 8 segmentos · o 4096 listas IVF</text></g>
+<path class="e fw" d="M190 72H216"/><path class="e fw" d="M440 72H466"/><path class="e st" d="M660 72H686"/>
+<rect class="lane" x="4" y="138" width="952" height="156" rx="6"/><text class="cap" x="16" y="158">online</text>
+<g class="in"><rect x="20" y="186" width="140" height="56" rx="5"/><text class="mid" x="90" y="210">x nuevo</text></g>
+<g class="hot"><rect x="190" y="186" width="220" height="56" rx="5"/><text class="m mid" x="300" y="210">j = argmin ‖x − cⱼ‖</text><text class="s mid" x="300" y="228">O(k·d)</text></g>
+<g class="out"><rect x="450" y="168" width="230" height="44" rx="5"/><text class="mid" x="565" y="188">segmento → campaña, pricing</text><text class="s mid" x="565" y="204">batch diario</text></g>
+<g class="out"><rect x="450" y="222" width="230" height="56" rx="5"/><text class="mid" x="565" y="244">IVF: buscar sólo en nprobe</text><text class="s mid" x="565" y="262">listas más cercanas (tema 15)</text></g>
+<g class="op"><rect x="710" y="186" width="230" height="56" rx="5"/><text class="mid" x="825" y="208">también: cuantización</text><text class="s mid" x="825" y="226">vector → id de centroide (1 byte)</text></g>
+<path class="e fw" d="M160 214H186"/><path class="e fw" d="M410 204H446"/><path class="e fw" d="M410 224H428V250H446"/>
+<path class="e st" d="M815 102V130H300V182"/>
+</svg></div><figcaption>Mismos centroides sirven para etiquetar en batch y para particionar un índice vectorial.</figcaption></figure>
+<dl class="kv">
+<dt>Monitorear</dt><dd>Tamaño de cada segmento por semana; distancia media al centroide asignado (sube ⇒ datos nuevos no encajan).</dd>
+<dt>Re-entrenar</dt><dd>Los ids de cluster no son estables entre fits: alinear nuevos con viejos (matching húngaro sobre centroides) antes de publicar.</dd>
+<dt>Escala</dt><dd>10⁸ puntos: mini-batch o FAISS k-means en GPU sobre una muestra; asignar el resto después.</dd>
+</dl>
+
+<h3>Trampas</h3>
+<ul class="ojo">
+<li>Asume clusters esféricos de tamaño parecido. Formas alargadas o anidadas: GMM o DBSCAN.</li>
+<li>Sin escalar, la feature de rango mayor decide todas las distancias.</li>
+<li>Outliers arrastran centroides (media sensible). Alternativa: k-medoids.</li>
+<li>n_init = 1 con init aleatoria: resultado depende de la semilla. Usar k-means++ y varios inicios.</li>
+</ul>
